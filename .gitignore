@@ -1,0 +1,6 @@
+node_modules
+out
+configs
+lib
+\.coverage
+\.vscode
