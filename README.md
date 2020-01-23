@@ -25,6 +25,8 @@ Options:
   -h, --help           output usage information
   ```
 
+![Screenshot](img/screenshot.png)
+
 ## Configuration
 
 ```javascript
