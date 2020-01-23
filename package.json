@@ -24,28 +24,28 @@
     "lib/"
   ],
   "dependencies": {
-    "@babel/cli": "^7.5.0",
-    "@babel/code-frame": "^7.0.0",
-    "@babel/core": "^7.5.4",
-    "@babel/parser": "^7.5.0",
-    "@babel/plugin-proposal-object-rest-spread": "^7.5.4",
-    "@babel/plugin-syntax-object-rest-spread": "^7.2.0",
-    "@babel/preset-env": "^7.5.4",
-    "@babel/traverse": "^7.5.0",
-    "@babel/types": "^7.5.0",
-    "chalk": "^2.4.2",
-    "commander": "^2.20.0",
-    "glob": "^7.1.4",
-    "json5": "^2.1.0",
-    "lodash": "^4.17.14"
+    "@babel/cli": "^7.8.3",
+    "@babel/code-frame": "^7.8.3",
+    "@babel/core": "^7.8.3",
+    "@babel/parser": "^7.8.3",
+    "@babel/plugin-proposal-object-rest-spread": "^7.8.3",
+    "@babel/plugin-syntax-object-rest-spread": "^7.8.3",
+    "@babel/preset-env": "^7.8.3",
+    "@babel/traverse": "^7.8.3",
+    "@babel/types": "^7.8.3",
+    "chalk": "^3.0.0",
+    "commander": "^4.1.0",
+    "glob": "^7.1.6",
+    "json5": "^2.1.1",
+    "lodash": "^4.17.15"
   },
   "devDependencies": {
-    "@babel/register": "^7.4.4",
+    "@babel/register": "^7.8.3",
     "babel-core": "^7.0.0-bridge.0",
-    "babel-eslint": "^10.0.2",
-    "eslint": "^6.0.1",
-    "jest": "^24.8.0",
-    "prettier": "^1.18.2"
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.8.0",
+    "jest": "^25.1.0",
+    "prettier": "^1.19.1"
   },
   "keywords": [
     "linting",
