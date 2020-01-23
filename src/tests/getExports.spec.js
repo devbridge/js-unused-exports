@@ -4,10 +4,11 @@ import getExports, { getExportedIdentifiers } from '../getExports';
 import createContext, { defaultParserOptions } from '../createContext';
 
 describe('getExports', () => {
+  const projectRoot = path.join(__dirname, 'sample-project');
+
   describe('getExports()', () => {
     it('gets exported identifiers from source file', () => {
-      const projectRoot = path.join(__dirname, 'fixtures');
-      const filePath = path.join(__dirname, './fixtures/exports-sample.js');
+      const filePath = path.join(projectRoot, 'src/exports-sample.js');
       const sourcePaths = [filePath];
 
       const ctx = createContext({
@@ -23,7 +24,7 @@ describe('getExports', () => {
 
   describe('getExportedIdentifiers()', () => {
     it('gets exported identifiers from source file', () => {
-      const filePath = path.join(__dirname, './fixtures/exports-sample.js');
+      const filePath = path.join(projectRoot, 'src/exports-sample.js');
       const source = fs.readFileSync(filePath, 'utf8');
 
       const result = getExportedIdentifiers(source, defaultParserOptions);

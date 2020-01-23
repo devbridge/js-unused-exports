@@ -1,4 +1,4 @@
-import lodash from 'lodash';
+import _ from 'lodash';
 import fs from 'fs';
 import path from 'path';
 import assert from 'assert';
@@ -11,7 +11,7 @@ const nativeModules = getNativeModuleMap();
 export default function getImports(sourcePaths, ctx) {
   const { projectRoot } = ctx.config;
   const toRelative = toRelativePath(projectRoot);
-  const hasImports = imp => !lodash.isEmpty(imp.imports);
+  const hasImports = imp => !_.isEmpty(imp.imports);
 
   return sourcePaths
     .map(sourcePath => {
@@ -56,18 +56,21 @@ function isRelativeImport(importPath, ctx) {
   const { aliases, ignoreImportPatterns } = ctx.config;
 
   const parts = importPath.split('/');
+  const importIsAliased = (value, alias) => importPath.startsWith(alias);
+
+  if (_.some(aliases, importIsAliased)) {
+    return true;
+  }
 
   // Check if module name is scoped package, e.g. @babel/core
   const moduleName =
     importPath.startsWith('@') && parts.length > 1
-      ? lodash.first(parts) + '/' + parts[1]
-      : lodash.first(parts);
+      ? _.first(parts) + '/' + parts[1]
+      : _.first(parts);
 
   if (
     ignoreImportPatterns &&
-    lodash.some(ignoreImportPatterns, pattern =>
-      RegExp(pattern).test(importPath)
-    )
+    _.some(ignoreImportPatterns, pattern => RegExp(pattern).test(importPath))
   ) {
     return false;
   }
@@ -99,7 +102,7 @@ function isImportDeclaration(node) {
 }
 
 function getImportDetails(node, srcPath, ast, ctx) {
-  const importedName = lodash.property('imported.name');
+  const importedName = _.property('imported.name');
   const createFilter = type => specifier => specifier.type === type;
   const isNamespaceSpecifier = createFilter('ImportNamespaceSpecifier');
   const isDefaultSpecifier = createFilter('ImportDefaultSpecifier');
@@ -132,7 +135,7 @@ function getImportDetails(node, srcPath, ast, ctx) {
     });
   }
 
-  const specifiers = lodash.compact(
+  const specifiers = _.compact(
     node.specifiers
       .filter(isImportSpecifier)
       .map(specifier => importedName(specifier))
@@ -165,7 +168,7 @@ function resolvePath(importValue, currentPath, ctx) {
 
   let importPath = null;
 
-  lodash.forEach(aliases, (aliasPath, alias) => {
+  _.forEach(aliases, (aliasPath, alias) => {
     if (importValue === alias) {
       importPath = path.join(projectRoot, aliasPath);
       return;
@@ -208,7 +211,7 @@ function resolvePath(importValue, currentPath, ctx) {
 }
 
 function getNativeModuleMap() {
-  return lodash.keyBy([
+  return _.keyBy([
     'assert',
     'async_hooks',
     'buffer',

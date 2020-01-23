@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import util from 'util';
-import lodash from 'lodash';
+import _ from 'lodash';
 import chalk from 'chalk';
 import JSON5 from 'json5';
 import { getSourcePaths } from './utils';
@@ -22,7 +21,7 @@ export function execute(args) {
   const { config } = ctx;
 
   printBox(`Current Configuration`);
-  console.log(util.inspect(ctx.config));
+  console.log(JSON.stringify(ctx.config, null, 2));
 
   const timeStart = Date.now();
 
@@ -77,8 +76,8 @@ export function execute(args) {
 }
 
 function getConfig(conifgPath) {
-  if (!lodash.isString(conifgPath)) {
-    return lodash.isPlainObject(conifgPath) ? conifgPath : {};
+  if (!_.isString(conifgPath)) {
+    return _.isPlainObject(conifgPath) ? conifgPath : {};
   }
 
   const absolutPath = path.resolve(conifgPath);
@@ -98,7 +97,7 @@ function print(message) {
 function printSummary(summary) {
   const { timeTook, sourceFileCount, testFileCount, unusedExports } = summary;
 
-  const unusedExportCount = lodash.sumBy(
+  const unusedExportCount = _.sumBy(
     unusedExports,
     exp => exp.unusedExports.length
   );
@@ -117,9 +116,9 @@ function printBox(value) {
   const width = 60;
   const empty = '';
 
-  print(`┌${lodash.pad(empty, width, '─')}┐`);
-  print(`|${lodash.pad(value, width, ' ')}|`);
-  print(`└${lodash.pad(empty, width, '─')}┘`);
+  print(`┌${_.pad(empty, width, '─')}┐`);
+  print(`|${_.pad(value, width, ' ')}|`);
+  print(`└${_.pad(empty, width, '─')}┘`);
 }
 
 function printWarning(message) {
@@ -127,7 +126,7 @@ function printWarning(message) {
 }
 
 function warnForUnknownPackages(unknownPackages) {
-  const unresolvePackages = lodash.keys(unknownPackages);
+  const unresolvePackages = _.keys(unknownPackages);
 
   if (unresolvePackages.length === 0) {
     return;
@@ -140,14 +139,14 @@ function warnForUnknownPackages(unknownPackages) {
   printWarning(message);
 
   unresolvePackages.forEach(pkg => {
-    printWarning(` - ${pkg}`);
+    printWarning(`  ${pkg}`);
   });
 }
 
 function warnForFailedResolutions(failedResolutions) {
-  const values = lodash.keys(failedResolutions);
+  const importPath = _.sortBy(_.keys(failedResolutions));
 
-  if (values.length === 0) {
+  if (importPath.length === 0) {
     return;
   }
 
@@ -158,7 +157,10 @@ function warnForFailedResolutions(failedResolutions) {
   ].join(' ');
 
   printWarning(message);
-  console.log(values);
+
+  importPath.forEach(importPath => {
+    printWarning(`  ${importPath}`);
+  });
 }
 
 function writeToFile(contents, outDir, fileName) {

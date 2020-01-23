@@ -5,8 +5,8 @@ import createContext from '../createContext';
 describe('getImports', () => {
   describe('getImports()', () => {
     it('extracts imports from file', () => {
-      const projectRoot = path.join(__dirname, 'fixtures');
-      const sourceFile = path.join(projectRoot, 'imports-sample.js');
+      const projectRoot = path.join(__dirname, 'sample-project');
+      const sourceFile = path.join(projectRoot, 'src/imports-sample.js');
 
       const ctx = createContext({
         projectRoot,
@@ -15,12 +15,13 @@ describe('getImports', () => {
       });
 
       const result = getImports([sourceFile], ctx);
+      const srcPath = `src${path.sep}exports-sample.js`;
 
       const expected = [
         {
           imports: {
             // Exports are sorted
-            'exports-sample.js': [
+            [srcPath]: [
               'default',
               'Family',
               'firstName',
@@ -28,7 +29,7 @@ describe('getImports', () => {
               'lastName'
             ].sort()
           },
-          relativePath: 'imports-sample.js',
+          relativePath: `src${path.sep}imports-sample.js`,
           sourcePath: sourceFile
         }
       ];
