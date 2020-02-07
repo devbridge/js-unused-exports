@@ -198,10 +198,22 @@ function resolvePath(importValue, currentPath, ctx) {
     return path.relative(projectRoot, jsPath);
   }
 
+  const jsxPath = `${importPath}.jsx`;
+
+  if (fs.existsSync(jsxPath)) {
+    return path.relative(projectRoot, jsxPath);
+  }
+
   const jsPathIndex = `${importPath}/index.js`;
 
   if (fs.existsSync(jsPathIndex)) {
     return path.relative(projectRoot, jsPathIndex);
+  }
+
+  const jsxPathIndex = `${importPath}/index.jsx`;
+
+  if (fs.existsSync(jsxPathIndex)) {
+    return path.relative(projectRoot, jsxPathIndex);
   }
 
   // Add to failed resolutions list
