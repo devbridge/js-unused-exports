@@ -5,10 +5,12 @@ export default function extractUnusedExports(
   importedIdentifiers,
   importedIdentifiersTest
 ) {
+  const testPaths = new Set(
+    importedIdentifiersTest.map(identifier => identifier.sourcePath)
+  );
+
   const identifierIsNotATest = importedIdentifier =>
-    !importedIdentifiersTest
-      .map(identifier => identifier.sourcePath)
-      .includes(importedIdentifier.sourcePath);
+    !testPaths.has(importedIdentifier.sourcePath);
 
   // Build map for quick lookup, where key is combined using path and name
   const importsByKey = importedIdentifiers
