@@ -2,18 +2,28 @@ import lodash from 'lodash';
 
 export default function extractUnusedExports(
   exportedNames,
-  importedIdentifiers
+  importedIdentifiers,
+  importedIdentifiersTest
 ) {
-  // Build map for quick lookup, where key is combined using path and name
-  const importsByKey = importedIdentifiers.reduce((map, imp) => {
-    lodash.forEach(imp.imports, (importedNames, importedFrom) => {
-      importedNames.forEach(importedName => {
-        map.set(`${importedFrom}:${importedName}`, true);
-      });
-    });
+  const testPaths = new Set(
+    importedIdentifiersTest.map(identifier => identifier.sourcePath)
+  );
 
-    return map;
-  }, new Map());
+  const identifierIsNotATest = importedIdentifier =>
+    !testPaths.has(importedIdentifier.sourcePath);
+
+  // Build map for quick lookup, where key is combined using path and name
+  const importsByKey = importedIdentifiers
+    .filter(identifierIsNotATest)
+    .reduce((map, imp) => {
+      lodash.forEach(imp.imports, (importedNames, importedFrom) => {
+        importedNames.forEach(importedName => {
+          map.set(`${importedFrom}:${importedName}`, true);
+        });
+      });
+
+      return map;
+    }, new Map());
 
   return exportedNames.reduce((accumulator, exported) => {
     const { relativePath, sourcePath } = exported;
