@@ -1,6 +1,6 @@
 {
   "name": "js-unused-exports",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Tool for identifying and reporting unused exports found in ECMAScript/JavaScript code",
   "main": "lib/cli.js",
   "author": "Devbridge Group",
