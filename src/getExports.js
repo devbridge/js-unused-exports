@@ -81,6 +81,9 @@ function getExportName(node) {
       }));
     case 'FunctionDeclaration':
     case 'ClassDeclaration':
+    case 'TypeAlias':
+    case 'OpaqueType':
+    case 'InterfaceDeclaration':
       return {
         name: node.declaration.id.name,
         loc: node.loc
