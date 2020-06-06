@@ -48,6 +48,9 @@ Options:
   // Import patterns to ignore
   ignoreImportPatterns: [ '(png|gif|jpg|jpeg|css|scss)$' ],
 
+  // Export patterns to ignore
+  ignoreExportPatterns: [ '(stories)' ],
+
   // If you use alias in you codebase you can specify them here, e.g.:
   aliases: {
     components: 'src/components'
