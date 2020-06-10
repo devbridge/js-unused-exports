@@ -21,6 +21,7 @@ Usage: js-unused-exports [options]
 Options:
   -v, --version        output the version number
   -c, --config [path]  path to the JSON config file
+  -o --out-dir [path]  path to print scan results as JSON
   -f, --fix            automatically remove "export" directive where possible
   -h, --help           output usage information
   ```
