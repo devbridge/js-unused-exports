@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.1.0 (2020-06-17)
+
+* Add option to specify patterns for ignoring exports
+
 ## v1.0.1 (2020-05-11)
 
 * Exclude tests from acceptable identifiers
