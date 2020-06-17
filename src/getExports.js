@@ -83,15 +83,15 @@ function getExportName(node) {
 
   switch (type) {
     case 'VariableDeclaration':
-      return node.declaration.declarations.map((declaration) => ({
+      return node.declaration.declarations.map(declaration => ({
         name: declaration.id.name,
-        loc: node.loc,
+        loc: node.loc
       }));
     case 'FunctionDeclaration':
     case 'ClassDeclaration':
       return {
         name: node.declaration.id.name,
-        loc: node.loc,
+        loc: node.loc
       };
     default:
       throw new Error(`Unknow declaration type: ${type}`);
