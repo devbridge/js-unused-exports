@@ -4,7 +4,7 @@ import { parse } from '@babel/parser';
 import { toRelativePath } from './utils';
 
 export default function getExports(sourcePaths, ctx) {
-  return sourcePaths.reduce(function (result, sourcePath) {
+  return sourcePaths.reduce((result, sourcePath) => {
     const source = fs.readFileSync(sourcePath, 'utf8');
     const exportData = getExportData(source, sourcePath, ctx);
 
