@@ -4,12 +4,20 @@ import { parse } from '@babel/parser';
 import { toRelativePath } from './utils';
 
 export default function getExports(sourcePaths, ctx) {
-  return sourcePaths.map(sourcePath => {
+  return sourcePaths.reduce((result, sourcePath) => {
     const source = fs.readFileSync(sourcePath, 'utf8');
     const exportData = getExportData(source, sourcePath, ctx);
 
-    return exportData;
-  });
+    const ignoreExportPatterns = ctx.config.ignoreExportPatterns;
+    if (
+      !ignoreExportPatterns ||
+      ignoreExportPatterns.every((pattern) => !RegExp(pattern).test(sourcePath))
+    ) {
+      result.push(exportData);
+    }
+
+    return result;
+  }, []);
 }
 
 function getExportData(source, sourcePath, ctx) {
