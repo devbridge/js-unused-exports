@@ -4,21 +4,20 @@ import { parse } from '@babel/parser';
 import { toRelativePath } from './utils';
 
 export default function getExports(sourcePaths, ctx) {
-  const result = [];
-
-  for (const sourcePath of sourcePaths) {
+  return sourcePaths.reduce(function (result, sourcePath) {
     const source = fs.readFileSync(sourcePath, 'utf8');
     const exportData = getExportData(source, sourcePath, ctx);
 
-    var ignoreExportPatterns = ctx.config.ignoreExportPatterns;
+    const ignoreExportPatterns = ctx.config.ignoreExportPatterns;
     if (
       !ignoreExportPatterns ||
       ignoreExportPatterns.every((pattern) => !RegExp(pattern).test(sourcePath))
     ) {
       result.push(exportData);
     }
-  }
-  return result;
+
+    return result;
+  }, []);
 }
 
 function getExportData(source, sourcePath, ctx) {
@@ -84,15 +83,15 @@ function getExportName(node) {
 
   switch (type) {
     case 'VariableDeclaration':
-      return node.declaration.declarations.map(declaration => ({
+      return node.declaration.declarations.map((declaration) => ({
         name: declaration.id.name,
-        loc: node.loc
+        loc: node.loc,
       }));
     case 'FunctionDeclaration':
     case 'ClassDeclaration':
       return {
         name: node.declaration.id.name,
-        loc: node.loc
+        loc: node.loc,
       };
     default:
       throw new Error(`Unknow declaration type: ${type}`);
