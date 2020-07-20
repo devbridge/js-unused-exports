@@ -7,6 +7,6 @@ import { lastName } from './exports-sample.js';
 import { parse } from '@babel/parser';
 
 // Fake usage to avoid ESLint issues
-const fakeFunction = () => {
+export const fakeFunction = () => {
   sample(firstName, lastName, getFullName, Family, parse);
 };
