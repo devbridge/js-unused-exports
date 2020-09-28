@@ -58,7 +58,10 @@
   "jest": {
     "collectCoverage": true,
     "coverageDirectory": "./.coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "setupFiles": [
+      "./src/polyfill.js"
+    ]
   },
   "prettier": {
     "tabWidth": 2,

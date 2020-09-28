@@ -1,4 +1,3 @@
-import lodash from 'lodash';
 import fs from 'fs';
 import { parse } from '@babel/parser';
 import { toRelativePath } from './utils';
@@ -53,9 +52,7 @@ function isExportDeclaration(node) {
  */
 export function getExportedIdentifiers(source, parserOptions) {
   const ast = parse(source, parserOptions);
-  const declarations = ast.program.body.filter(isExportDeclaration);
-
-  return lodash.flatMap(declarations, getExportName);
+  return ast.program.body.filter(isExportDeclaration).flatMap(getExportName);
 }
 
 /**

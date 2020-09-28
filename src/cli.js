@@ -3,6 +3,7 @@ import path from 'path';
 import _ from 'lodash';
 import chalk from 'chalk';
 import JSON5 from 'json5';
+import './polyfill';
 import { getSourcePaths } from './utils';
 import extractUnusedExports from './extractUnusedExports';
 import fixExports from './fixExports';
