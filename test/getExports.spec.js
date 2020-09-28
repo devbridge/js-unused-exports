@@ -38,7 +38,7 @@ describe('getExports', () => {
       ]);
     });
 
-    it.skip('from multiple source files, with ignore pattern', () => {
+    it('from multiple source files, with ignore pattern', () => {
       testGetExports(
         [
           path.join(projectRoot, 'src/exports-sample.js'),

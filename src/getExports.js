@@ -5,25 +5,25 @@ import { toRelativePath } from './utils';
 
 export default function getExports(sourcePaths, ctx) {
   return sourcePaths.reduce((result, sourcePath) => {
+    const { ignoreExportPatterns = [] } = ctx.config;
+    const isIgnored = (pattern) => new RegExp(pattern).test(sourcePath);
+
+    if (ignoreExportPatterns.some(isIgnored)) {
+      return result;
+    }
+
     const source = fs.readFileSync(sourcePath, 'utf8');
     const exportData = getExportData(source, sourcePath, ctx);
 
-    const ignoreExportPatterns = ctx.config.ignoreExportPatterns;
-    if (
-      !ignoreExportPatterns ||
-      ignoreExportPatterns.every((pattern) => !RegExp(pattern).test(sourcePath))
-    ) {
-      result.push(exportData);
-    }
-
+    result.push(exportData);
     return result;
   }, []);
 }
 
 export function getExportData(source, sourcePath, ctx) {
-  const { config } = ctx;
-  const exports = getExportedIdentifiers(source, config.parserOptions);
-  const toRelative = toRelativePath(config.projectRoot);
+  const { projectRoot, parserOptions } = ctx.config;
+  const exports = getExportedIdentifiers(source, parserOptions);
+  const toRelative = toRelativePath(projectRoot);
 
   return {
     sourcePath,
