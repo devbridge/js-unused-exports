@@ -11,10 +11,10 @@ const nativeModules = getNativeModuleMap();
 export default function getImports(sourcePaths, ctx) {
   const { projectRoot } = ctx.config;
   const toRelative = toRelativePath(projectRoot);
-  const hasImports = imp => !_.isEmpty(imp.imports);
+  const hasImports = (imp) => !_.isEmpty(imp.imports);
 
   return sourcePaths
-    .map(sourcePath => {
+    .map((sourcePath) => {
       const source = fs.readFileSync(sourcePath, 'utf8');
       const relativePath = toRelative(sourcePath);
       const importData = getImportData(source, sourcePath, ctx);
@@ -35,7 +35,7 @@ export default function getImports(sourcePaths, ctx) {
       return {
         sourcePath,
         relativePath,
-        imports
+        imports,
       };
     })
     .filter(hasImports);
@@ -44,12 +44,12 @@ export default function getImports(sourcePaths, ctx) {
 function getImportData(source, srcPath, ctx) {
   const { config } = ctx;
   const ast = parse(source, config.parserOptions);
-  const isRelative = node => isRelativeImport(node.source.value, ctx);
+  const isRelative = (node) => isRelativeImport(node.source.value, ctx);
   const nodes = ast.program.body.filter(isImportDeclaration).filter(isRelative);
 
   return nodes
-    .map(node => getImportDetails(node, srcPath, ast, ctx))
-    .filter(details => details.specifiers.length > 0);
+    .map((node) => getImportDetails(node, srcPath, ast, ctx))
+    .filter((details) => details.specifiers.length > 0);
 }
 
 function isRelativeImport(importPath, ctx) {
@@ -70,7 +70,7 @@ function isRelativeImport(importPath, ctx) {
 
   if (
     ignoreImportPatterns &&
-    _.some(ignoreImportPatterns, pattern => RegExp(pattern).test(importPath))
+    _.some(ignoreImportPatterns, (pattern) => RegExp(pattern).test(importPath))
   ) {
     return false;
   }
@@ -103,7 +103,7 @@ function isImportDeclaration(node) {
 
 function getImportDetails(node, srcPath, ast, ctx) {
   const importedName = _.property('imported.name');
-  const createFilter = type => specifier => specifier.type === type;
+  const createFilter = (type) => (specifier) => specifier.type === type;
   const isNamespaceSpecifier = createFilter('ImportNamespaceSpecifier');
   const isDefaultSpecifier = createFilter('ImportDefaultSpecifier');
   const isImportSpecifier = createFilter('ImportSpecifier');
@@ -131,14 +131,14 @@ function getImportDetails(node, srcPath, ast, ctx) {
         ) {
           nsSpecifiers.push(nodePath.node.property.name);
         }
-      }
+      },
     });
   }
 
   const specifiers = _.compact(
     node.specifiers
       .filter(isImportSpecifier)
-      .map(specifier => importedName(specifier))
+      .map((specifier) => importedName(specifier))
   );
 
   if (node.specifiers.find(isDefaultSpecifier)) {
@@ -156,7 +156,7 @@ function getImportDetails(node, srcPath, ast, ctx) {
 
   return {
     specifiers: [...specifiers, ...nsSpecifiers],
-    from: resolvePath(node.source.value, srcPath, ctx)
+    from: resolvePath(node.source.value, srcPath, ctx),
   };
 }
 
@@ -261,6 +261,6 @@ function getNativeModuleMap() {
     'util',
     'v8',
     'vm',
-    'zlib'
+    'zlib',
   ]);
 }

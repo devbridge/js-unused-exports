@@ -13,22 +13,22 @@ describe('extractUnusedExports', () => {
           exports: [
             { name: 'ArrowLeft' },
             { name: 'ArrowCenter' },
-            { name: 'ArrowRight' }
-          ]
-        }
+            { name: 'ArrowRight' },
+          ],
+        },
       ];
 
       const importedNames = [
         {
           sourcePath: '/project/src/fileA',
           relativePath: 'src/fileA',
-          imports: { [relativePath]: ['ArrowLeft'] }
+          imports: { [relativePath]: ['ArrowLeft'] },
         },
         {
           sourcePath: '/project/src/fileB',
           relativePath: 'src/fileB',
-          imports: { [relativePath]: ['ArrowRight'] }
-        }
+          imports: { [relativePath]: ['ArrowRight'] },
+        },
       ];
 
       const result = extractUnusedExports(exportedNames, importedNames, []);
@@ -37,8 +37,8 @@ describe('extractUnusedExports', () => {
         {
           relativePath,
           sourcePath,
-          unusedExports: [{ name: 'ArrowCenter' }]
-        }
+          unusedExports: [{ name: 'ArrowCenter' }],
+        },
       ]);
     });
 
@@ -53,30 +53,30 @@ describe('extractUnusedExports', () => {
           exports: [
             { name: 'ArrowLeft' },
             { name: 'ArrowCenter' },
-            { name: 'ArrowRight' }
-          ]
-        }
+            { name: 'ArrowRight' },
+          ],
+        },
       ];
 
       const importedNames = [
         {
           sourcePath: '/project/src/fileA',
           relativePath: 'src/fileA',
-          imports: { [relativePath]: ['ArrowLeft'] }
+          imports: { [relativePath]: ['ArrowLeft'] },
         },
         {
           sourcePath: '/project/tests/Arrows/fileB',
           relativePath: 'tests/Arrows/fileB',
-          imports: { [relativePath]: ['ArrowRight'] }
-        }
+          imports: { [relativePath]: ['ArrowRight'] },
+        },
       ];
 
       const importNamesTest = [
         {
           sourcePath: '/project/tests/Arrows/fileB',
           relativePath: 'tests/Arrows/fileB',
-          imports: { [relativePath]: ['ArrowRight'] }
-        }
+          imports: { [relativePath]: ['ArrowRight'] },
+        },
       ];
 
       const result = extractUnusedExports(
@@ -89,8 +89,8 @@ describe('extractUnusedExports', () => {
         {
           relativePath,
           sourcePath,
-          unusedExports: [{ name: 'ArrowCenter' }, { name: 'ArrowRight' }]
-        }
+          unusedExports: [{ name: 'ArrowCenter' }, { name: 'ArrowRight' }],
+        },
       ]);
     });
   });

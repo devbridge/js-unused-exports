@@ -6,7 +6,7 @@ export default function generateReport(unusedExports) {
   const frameOptions = {
     highlightCode: true,
     linesAbove: 0,
-    linesBelow: 0
+    linesBelow: 0,
   };
 
   const maxItems = 5000;
@@ -17,7 +17,7 @@ export default function generateReport(unusedExports) {
     console.log(`${i}: ${unused.relativePath}`);
     const src = fs.readFileSync(unused.sourcePath, 'utf8');
 
-    forEach(unused.unusedExports, exp => {
+    forEach(unused.unusedExports, (exp) => {
       counter += 1;
 
       // console.log(`    - ${exp.name}`);

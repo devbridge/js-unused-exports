@@ -28,7 +28,7 @@ function getExportData(source, sourcePath, ctx) {
   return {
     sourcePath,
     relativePath: toRelative(sourcePath),
-    exports
+    exports,
   };
 }
 
@@ -68,14 +68,14 @@ function getExportName(node) {
   if (node.type === 'ExportDefaultDeclaration') {
     return {
       name: 'default',
-      loc: node.loc
+      loc: node.loc,
     };
   }
 
   if (!node.declaration) {
-    return node.specifiers.map(specifier => ({
+    return node.specifiers.map((specifier) => ({
       name: specifier.exported.name,
-      loc: specifier.exported.loc
+      loc: specifier.exported.loc,
     }));
   }
 
@@ -83,9 +83,9 @@ function getExportName(node) {
 
   switch (type) {
     case 'VariableDeclaration':
-      return node.declaration.declarations.map(declaration => ({
+      return node.declaration.declarations.map((declaration) => ({
         name: declaration.id.name,
-        loc: node.loc
+        loc: node.loc,
       }));
     case 'FunctionDeclaration':
     case 'ClassDeclaration':
@@ -94,7 +94,7 @@ function getExportName(node) {
     case 'InterfaceDeclaration':
       return {
         name: node.declaration.id.name,
-        loc: node.loc
+        loc: node.loc,
       };
     default:
       throw new Error(`Unknow declaration type: ${type}`);

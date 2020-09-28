@@ -6,10 +6,10 @@ export default function extractUnusedExports(
   importedIdentifiersTest
 ) {
   const testPaths = new Set(
-    importedIdentifiersTest.map(identifier => identifier.sourcePath)
+    importedIdentifiersTest.map((identifier) => identifier.sourcePath)
   );
 
-  const identifierIsNotATest = importedIdentifier =>
+  const identifierIsNotATest = (importedIdentifier) =>
     !testPaths.has(importedIdentifier.sourcePath);
 
   // Build map for quick lookup, where key is combined using path and name
@@ -17,7 +17,7 @@ export default function extractUnusedExports(
     .filter(identifierIsNotATest)
     .reduce((map, imp) => {
       lodash.forEach(imp.imports, (importedNames, importedFrom) => {
-        importedNames.forEach(importedName => {
+        importedNames.forEach((importedName) => {
           map.set(`${importedFrom}:${importedName}`, true);
         });
       });
@@ -43,7 +43,7 @@ export default function extractUnusedExports(
       accumulator.push({
         sourcePath,
         relativePath,
-        unusedExports
+        unusedExports,
       });
     }
 

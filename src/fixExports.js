@@ -2,8 +2,8 @@ import lodash from 'lodash';
 import fs from 'fs';
 
 export default function fixExports(unusedExports, config) {
-  lodash.forEach(unusedExports, unused => {
-    const indentifierNames = unused.unusedExports.map(exp => exp.name);
+  lodash.forEach(unusedExports, (unused) => {
+    const indentifierNames = unused.unusedExports.map((exp) => exp.name);
     const sourceBefore = fs.readFileSync(unused.sourcePath, 'utf8');
 
     const sourceAfter = removeExportDeclarations(

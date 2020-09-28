@@ -11,7 +11,7 @@ describe('getImports', () => {
       const ctx = createContext({
         projectRoot,
         aliases: {},
-        sourcePaths: []
+        sourcePaths: [],
       });
 
       const result = getImports([sourceFile], ctx);
@@ -26,12 +26,12 @@ describe('getImports', () => {
               'Family',
               'firstName',
               'getName',
-              'lastName'
-            ].sort()
+              'lastName',
+            ].sort(),
           },
           relativePath: `src${path.sep}imports-sample.js`,
-          sourcePath: sourceFile
-        }
+          sourcePath: sourceFile,
+        },
       ];
 
       expect(result).toMatchObject(expected);

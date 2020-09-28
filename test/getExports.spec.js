@@ -13,7 +13,7 @@ describe('getExports', () => {
 
       const ctx = createContext({
         projectRoot,
-        sourcePaths
+        sourcePaths,
       });
 
       const result = getExports(sourcePaths, ctx);
@@ -28,7 +28,7 @@ describe('getExports', () => {
       const source = fs.readFileSync(filePath, 'utf8');
 
       const result = getExportedIdentifiers(source, defaultParserOptions);
-      const identifiers = result.map(item => item.name);
+      const identifiers = result.map((item) => item.name);
 
       expect(identifiers).toEqual([
         'firstName',
@@ -36,7 +36,7 @@ describe('getExports', () => {
         'getFullName',
         'getName',
         'Family',
-        'default'
+        'default',
       ]);
     });
   });

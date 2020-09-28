@@ -10,12 +10,12 @@ import path from 'path';
 export function getSourcePaths(globPatterns, config) {
   const options = {
     cwd: config.projectRoot,
-    ignore: config.ignorePaths
+    ignore: config.ignorePaths,
   };
 
-  return lodash.flatMap(globPatterns, globPattern =>
-    glob.sync(globPattern, options)
-  ).map(toAbsolutPath(config.projectRoot));
+  return lodash
+    .flatMap(globPatterns, (globPattern) => glob.sync(globPattern, options))
+    .map(toAbsolutPath(config.projectRoot));
 }
 
 /**
@@ -24,7 +24,7 @@ export function getSourcePaths(globPatterns, config) {
  * @param {string} projectRoot Project root directory path
  */
 function toAbsolutPath(projectRoot) {
-  return relativePath => path.join(projectRoot, relativePath);
+  return (relativePath) => path.join(projectRoot, relativePath);
 }
 
 /**
@@ -33,5 +33,5 @@ function toAbsolutPath(projectRoot) {
  * @param {string} projectRoot Project root directory path
  */
 export function toRelativePath(projectRoot) {
-  return sourcePath => path.relative(projectRoot, sourcePath);
+  return (sourcePath) => path.relative(projectRoot, sourcePath);
 }

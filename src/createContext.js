@@ -13,8 +13,8 @@ export const defaultParserOptions = {
 
     // Required by frontend
     'decorators-legacy',
-    'exportDefaultFrom'
-  ]
+    'exportDefaultFrom',
+  ],
 };
 
 const CONFIG_DEFAULTS = {
@@ -22,14 +22,14 @@ const CONFIG_DEFAULTS = {
   testPaths: ['src/**/*.spec.js'],
   ignoreImportPatterns: ['(png|gif|jpg|jpeg|css|scss)$'],
   aliases: {},
-  parserOptions: defaultParserOptions
+  parserOptions: defaultParserOptions,
 };
 
 export default function createContext(userConfig) {
   const config = {
     ...CONFIG_DEFAULTS,
     ...userConfig,
-    projectRoot: userConfig.projectRoot || process.cwd()
+    projectRoot: userConfig.projectRoot || process.cwd(),
   };
 
   assertConfig(config);
@@ -43,7 +43,7 @@ export default function createContext(userConfig) {
     config,
     dependencies: { ...dependencies, ...devDependencies },
     unknownPackages: {},
-    failedResolutions: {}
+    failedResolutions: {},
   };
 }
 

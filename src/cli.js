@@ -69,7 +69,7 @@ export function execute(args) {
     sourceFileCount: sourceFiles.length,
     testFileCount: testFiles.length,
     unusedExports,
-    timeTook
+    timeTook,
   };
 
   printSummary(summary);
@@ -99,7 +99,7 @@ function printSummary(summary) {
 
   const unusedExportCount = _.sumBy(
     unusedExports,
-    exp => exp.unusedExports.length
+    (exp) => exp.unusedExports.length
   );
 
   const fileCount = unusedExports.length;
@@ -138,7 +138,7 @@ function warnForUnknownPackages(unknownPackages) {
 
   printWarning(message);
 
-  unresolvePackages.forEach(pkg => {
+  unresolvePackages.forEach((pkg) => {
     printWarning(`  ${pkg}`);
   });
 }
@@ -153,12 +153,12 @@ function warnForFailedResolutions(failedResolutions) {
   const message = [
     'Unable to resolve following import paths. Please',
     'specify "alias" if needed or add pattern to',
-    '"ignoreImportPatterns" in provided config file.'
+    '"ignoreImportPatterns" in provided config file.',
   ].join(' ');
 
   printWarning(message);
 
-  importPath.forEach(importPath => {
+  importPath.forEach((importPath) => {
     printWarning(`  ${importPath}`);
   });
 }
