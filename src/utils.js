@@ -11,20 +11,12 @@ export function getSourcePaths(globPatterns, config) {
   const options = {
     cwd: config.projectRoot,
     ignore: config.ignorePaths,
+    absolute: true,
   };
 
-  return lodash
-    .flatMap(globPatterns, (globPattern) => glob.sync(globPattern, options))
-    .map(toAbsolutPath(config.projectRoot));
-}
-
-/**
- * Returns function which converts relative path to absolute.
- *
- * @param {string} projectRoot Project root directory path
- */
-function toAbsolutPath(projectRoot) {
-  return (relativePath) => path.join(projectRoot, relativePath);
+  return lodash.flatMap(globPatterns, (globPattern) =>
+    glob.sync(globPattern, options)
+  );
 }
 
 /**
