@@ -1,6 +1,6 @@
 import path from 'path';
-import getImports from '../getImports';
-import createContext from '../createContext';
+import getImports from '../src/getImports';
+import createContext from '../src/createContext';
 
 describe('getImports', () => {
   describe('getImports()', () => {

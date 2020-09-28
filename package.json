@@ -13,9 +13,9 @@
     "url": "https://github.com/devbridge/js-unused-exports.git"
   },
   "scripts": {
-    "test": "jest src",
-    "lint": "eslint src",
-    "prepublish": "npx babel src --out-dir lib --ignore src/tests/**/*"
+    "test": "jest test",
+    "lint": "eslint src test",
+    "prepublish": "npx babel src --out-dir lib"
   },
   "files": [
     "README.md",

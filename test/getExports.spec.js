@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
-import getExports, { getExportedIdentifiers } from '../getExports';
-import createContext, { defaultParserOptions } from '../createContext';
+import getExports, { getExportedIdentifiers } from '../src/getExports';
+import createContext, { defaultParserOptions } from '../src/createContext';
 
 describe('getExports', () => {
   const projectRoot = path.join(__dirname, 'sample-project');

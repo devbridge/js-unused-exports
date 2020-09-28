@@ -1,4 +1,4 @@
-import extractUnusedExports from '../extractUnusedExports';
+import extractUnusedExports from '../src/extractUnusedExports';
 
 describe('extractUnusedExports', () => {
   describe('extractUnusedExports()', () => {

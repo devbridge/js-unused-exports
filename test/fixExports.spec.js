@@ -1,4 +1,4 @@
-import fixExports, { removeExportDeclarations } from '../fixExports';
+import fixExports, { removeExportDeclarations } from '../src/fixExports';
 import fs from 'fs';
 
 jest.mock('fs', () => ({
