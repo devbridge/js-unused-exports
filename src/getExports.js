@@ -20,7 +20,7 @@ export default function getExports(sourcePaths, ctx) {
   }, []);
 }
 
-function getExportData(source, sourcePath, ctx) {
+export function getExportData(source, sourcePath, ctx) {
   const { config } = ctx;
   const exports = getExportedIdentifiers(source, config.parserOptions);
   const toRelative = toRelativePath(config.projectRoot);

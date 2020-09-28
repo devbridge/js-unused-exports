@@ -6,7 +6,7 @@ import { lastName } from './exports-sample.js';
 // Scoped package import
 import { parse } from '@babel/parser';
 
-// Fake usage to avoid ESLint issues
-export const fakeFunction = () => {
+// eslint-disable-next-line no-unused-vars
+const fakeFunction = () => {
   sample(firstName, lastName, getFullName, Family, parse);
 };
