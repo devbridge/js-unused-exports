@@ -15,21 +15,22 @@ describe('getImports', () => {
       });
 
       const result = getImports([sourceFile], ctx);
-      const srcPath = `src${path.sep}exports-sample.js`;
+      const exportAllSrcPath = path.join(projectRoot, 'src/export-all.js');
+      const exportSrcPath = path.join(projectRoot, 'src/exports-sample.js');
 
       const expected = [
         {
           imports: {
-            // Exports are sorted
-            [srcPath]: [
-              'default',
+            [exportSrcPath]: [
               'Family',
+              'default',
               'firstName',
               'getName',
               'lastName',
-            ].sort(),
+            ],
+            [exportAllSrcPath]: ['A', 'B', 'C'],
           },
-          relativePath: `src${path.sep}imports-sample.js`,
+          relativePath: path.join('src', 'imports-sample.js'),
           sourcePath: sourceFile,
         },
       ];

@@ -20,7 +20,7 @@ export const defaultParserOptions = {
 const CONFIG_DEFAULTS = {
   sourcePaths: ['src/**/*.js'],
   testPaths: ['src/**/*.spec.js'],
-  ignoreImportPatterns: ['(png|gif|jpg|jpeg|css|scss)$'],
+  ignoreImportPatterns: ['node_modules', '(png|gif|jpg|jpeg|css|scss)$'],
   aliases: {},
   parserOptions: defaultParserOptions,
 };
