@@ -61,7 +61,7 @@ export function getExportedIdentifiers(source, parserOptions) {
  *
  * @param {AstNode} node
  */
-function getExportName(node) {
+export function getExportName(node) {
   if (node.type === 'ExportDefaultDeclaration') {
     return {
       name: 'default',

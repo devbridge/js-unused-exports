@@ -1,8 +1,11 @@
 import path from 'path';
 import fs from 'fs';
+import { parse } from '@babel/parser';
+
 import getExports, {
   getExportData,
   getExportedIdentifiers,
+  getExportName,
 } from '../src/getExports';
 import createContext, { defaultParserOptions } from '../src/createContext';
 
@@ -119,6 +122,66 @@ export const C = 789;`,
         'Family',
         'default',
       ]);
+    });
+  });
+
+  describe('getExportName()', () => {
+    const testGetExportName = (source, expectedName) => {
+      const ast = parse(source, defaultParserOptions);
+      const node = ast.program.body[0];
+      const exportName = getExportName(node);
+      const expected = Array.isArray(expectedName)
+        ? expectedName
+        : [expectedName];
+
+      const check = ({ name }) => expect(expected).toContain(name);
+
+      if (Array.isArray(exportName)) {
+        exportName.forEach(check);
+      } else {
+        check(exportName);
+      }
+    };
+
+    it('VariableDeclaration', () => {
+      testGetExportName('export const A = 123', 'A');
+    });
+
+    it('ExportDefaultDeclaration', () => {
+      testGetExportName('export default 123', 'default');
+    });
+
+    it('FunctionDeclaration', () => {
+      testGetExportName('export function B() {}', 'B');
+    });
+
+    it('ExportNamedDeclaration', () => {
+      testGetExportName(
+        `export { firstName, lastName, getName } from './src/imports-sample-.js';`,
+        ['firstName', 'lastName', 'getName']
+      );
+    });
+
+    it('ClassDeclaration', () => {
+      testGetExportName('export class C {};', 'C');
+    });
+
+    it('TypeAlias', () => {
+      testGetExportName('export type D = number', 'D');
+    });
+
+    it('OpaqueType', () => {
+      testGetExportName('export opaque type E = string;', 'E');
+    });
+
+    it('InterfaceDeclaration', () => {
+      testGetExportName('export interface F { serialize(): string };', 'F');
+    });
+
+    it('Unknown', () => {
+      const ast = parse('{}', defaultParserOptions);
+      const node = ast.program.body[0];
+      expect(() => getExportName(node)).toThrow();
     });
   });
 });
