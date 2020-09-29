@@ -1,5 +1,14 @@
 import fs from 'fs';
 import { parse } from '@babel/parser';
+import {
+  isExportDefaultDeclaration,
+  isVariableDeclaration,
+  isFunctionDeclaration,
+  isClassDeclaration,
+  isTypeAlias,
+  isOpaqueType,
+  isInterfaceDeclaration,
+} from '@babel/types';
 import { toRelativePath } from './utils';
 
 export default function getExports(sourcePaths, ctx) {
@@ -62,38 +71,42 @@ export function getExportedIdentifiers(source, parserOptions) {
  * @param {AstNode} node
  */
 export function getExportName(node) {
-  if (node.type === 'ExportDefaultDeclaration') {
+  if (isExportDefaultDeclaration(node)) {
     return {
       name: 'default',
       loc: node.loc,
     };
   }
 
-  if (!node.declaration) {
+  const { declaration } = node;
+
+  if (isVariableDeclaration(declaration)) {
+    return declaration.declarations.map((declaration) => ({
+      name: declaration.id.name,
+      loc: node.loc,
+    }));
+  }
+
+  if (
+    isFunctionDeclaration(declaration) ||
+    isClassDeclaration(declaration) ||
+    isTypeAlias(declaration) ||
+    isOpaqueType(declaration) ||
+    isInterfaceDeclaration(declaration)
+  ) {
+    return {
+      name: declaration.id.name,
+      loc: node.loc,
+    };
+  }
+
+  if (!declaration && node.specifiers) {
     return node.specifiers.map((specifier) => ({
       name: specifier.exported.name,
       loc: specifier.exported.loc,
     }));
   }
 
-  const { type } = node.declaration;
-
-  switch (type) {
-    case 'VariableDeclaration':
-      return node.declaration.declarations.map((declaration) => ({
-        name: declaration.id.name,
-        loc: node.loc,
-      }));
-    case 'FunctionDeclaration':
-    case 'ClassDeclaration':
-    case 'TypeAlias':
-    case 'OpaqueType':
-    case 'InterfaceDeclaration':
-      return {
-        name: node.declaration.id.name,
-        loc: node.loc,
-      };
-    default:
-      throw new Error(`Unknow declaration type: ${type}`);
-  }
+  const { type } = declaration || node;
+  throw new Error(`Unknow declaration type: ${type}`);
 }
