@@ -69,7 +69,7 @@ function isImportDeclaration(node) {
   );
 }
 
-function getImportDetails(node, srcPath, ast, ctx) {
+export function getImportDetails(node, srcPath, ast, ctx) {
   const createFilter = (type) => (specifier) => specifier.type === type;
   const isNamespaceSpecifier = createFilter('ImportNamespaceSpecifier');
   const isDefaultSpecifier = createFilter('ImportDefaultSpecifier');
