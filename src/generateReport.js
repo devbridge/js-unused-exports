@@ -1,36 +1,41 @@
 import fs from 'fs';
-import { forEach } from 'lodash';
+import path from 'path';
 import { codeFrameColumns } from '@babel/code-frame';
 
-export default function generateReport(unusedExports) {
+export default function generateReport(unusedExports, projectRoot) {
   const frameOptions = {
     highlightCode: true,
     linesAbove: 0,
     linesBelow: 0,
   };
 
-  const maxItems = 5000;
+  const maxFilesToDisplay = 50;
+  const entries = Object.entries(unusedExports);
 
-  let counter = 0;
+  entries
+    .slice(0, maxFilesToDisplay)
+    .forEach(([key, { sourcePath, unusedExports }]) => {
+      const relativePath = path.relative(projectRoot, sourcePath);
 
-  forEach(unusedExports, (unused, i) => {
-    console.log(`${i}: ${unused.relativePath}`);
-    const src = fs.readFileSync(unused.sourcePath, 'utf8');
+      console.log(`${key}: ${relativePath}`);
+      const src = fs.readFileSync(sourcePath, 'utf8');
 
-    forEach(unused.unusedExports, (exp) => {
-      counter += 1;
-
-      // console.log(`    - ${exp.name}`);
-      if (exp.loc) {
-        const loc = { start: exp.loc.start };
-        console.log(codeFrameColumns(src, loc, frameOptions));
-      } else {
-        console.log(`    - ${exp.name}`);
-      }
+      Object.values(unusedExports).forEach((exp) => {
+        if (exp.loc) {
+          const loc = { start: exp.loc.start };
+          console.log(codeFrameColumns(src, loc, frameOptions));
+        } else {
+          console.log(`    - ${exp.name}`);
+        }
+      });
+      console.log('');
     });
-    console.log('');
 
-    // Stop iteration at max items
-    return counter < maxItems;
-  });
+  if (entries.length > maxFilesToDisplay) {
+    console.log('');
+    console.log(
+      `Showing ${maxFilesToDisplay} of ${entries.length} affected files`
+    );
+    console.log('');
+  }
 }
