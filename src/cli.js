@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import _ from 'lodash';
 import chalk from 'chalk';
 import JSON5 from 'json5';
 import './polyfill';
@@ -11,6 +10,7 @@ import printReport from './generateReport';
 import createContext from './createContext';
 import getExports from './getExports';
 import getImports from './getImports';
+import { isPlainObject } from './utils';
 
 const warn = chalk.yellow;
 const info = chalk.green;
@@ -44,7 +44,7 @@ export function execute(args) {
     fixExports(unusedExports, config);
   } else {
     printBox(`Report`);
-    printReport(unusedExports);
+    printReport(unusedExports, config.projectRoot);
   }
 
   const { outDir } = args;
@@ -76,14 +76,14 @@ export function execute(args) {
   printSummary(summary);
 }
 
-function getConfig(conifgPath) {
-  if (!_.isString(conifgPath)) {
-    return _.isPlainObject(conifgPath) ? conifgPath : {};
+function getConfig(configPath) {
+  if (typeof configPath !== 'string') {
+    return isPlainObject(configPath) ? configPath : {};
   }
 
-  const absolutPath = path.resolve(conifgPath);
+  const absolutPath = path.resolve(configPath);
 
-  if (!fs.existsSync(conifgPath)) {
+  if (!fs.existsSync(configPath)) {
     printWarning('Unable to find config file: ' + absolutPath);
     return null;
   }
@@ -98,9 +98,9 @@ function print(message) {
 function printSummary(summary) {
   const { timeTook, sourceFileCount, testFileCount, unusedExports } = summary;
 
-  const unusedExportCount = _.sumBy(
-    unusedExports,
-    (exp) => exp.unusedExports.length
+  const unusedExportCount = unusedExports.reduce(
+    (acc, exp) => acc + exp.unusedExports.length,
+    0
   );
 
   const fileCount = unusedExports.length;
@@ -115,11 +115,13 @@ function printSummary(summary) {
 
 function printBox(value) {
   const width = 60;
-  const empty = '';
+  const padding = (width - value.length) / 2;
+  const startPadding = Math.floor(padding);
+  const endPaddig = Math.ceil(padding);
 
-  print(`┌${_.pad(empty, width, '─')}┐`);
-  print(`|${_.pad(value, width, ' ')}|`);
-  print(`└${_.pad(empty, width, '─')}┘`);
+  print(`┌${'─'.repeat(width)}┐`);
+  print(`|${' '.repeat(startPadding)}${value}${' '.repeat(endPaddig)}|`);
+  print(`└${'─'.repeat(width)}┘`);
 }
 
 function printWarning(message) {
@@ -140,14 +142,12 @@ function warnForUnknownPackages(unknownPackages) {
   printWarning(message);
 
   unresolvePackages.forEach((pkg) => {
-    printWarning(`  ${pkg}`);
+    printWarning(`  ${pkg} `);
   });
 }
 
 function warnForFailedResolutions(failedResolutions) {
-  const importPath = _.sortBy(failedResolutions);
-
-  if (importPath.length === 0) {
+  if (!failedResolutions.length) {
     return;
   }
 
@@ -159,8 +159,8 @@ function warnForFailedResolutions(failedResolutions) {
 
   printWarning(message);
 
-  importPath.forEach((importPath) => {
-    printWarning(`  ${importPath}`);
+  [...failedResolutions].sort().forEach((importPath) => {
+    printWarning(`  ${importPath} `);
   });
 }
 

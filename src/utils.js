@@ -14,3 +14,31 @@ export function getSourcePaths(globPatterns, config) {
 
   return globPatterns.flatMap((globPattern) => glob.sync(globPattern, options));
 }
+
+// Lifted from lodash
+function isObjectLike(value) {
+  return typeof value === 'object' && value !== null;
+}
+
+export function isPlainObject(value) {
+  if (!isObjectLike(value) || String(value) !== '[object Object]') {
+    return false;
+  }
+  if (Object.getPrototypeOf(value) === null) {
+    return true;
+  }
+  let proto = value;
+  while (Object.getPrototypeOf(proto) !== null) {
+    proto = Object.getPrototypeOf(proto);
+  }
+  return Object.getPrototypeOf(value) === proto;
+}
+
+const reRegExpChar = /[\\^$.*+?()[\]{}|]/g;
+const reHasRegExpChar = RegExp(reRegExpChar.source);
+
+export function escapeRegExp(string) {
+  return string && reHasRegExpChar.test(string)
+    ? string.replace(reRegExpChar, '\\$&')
+    : string || '';
+}

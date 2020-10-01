@@ -1,8 +1,8 @@
-import lodash from 'lodash';
 import fs from 'fs';
+import { escapeRegExp } from './utils';
 
 export default function fixExports(unusedExports, config) {
-  lodash.forEach(unusedExports, (unused) => {
+  Object.values(unusedExports).forEach((unused) => {
     const indentifierNames = unused.unusedExports.map((exp) => exp.name);
     const sourceBefore = fs.readFileSync(unused.sourcePath, 'utf8');
 
@@ -17,7 +17,7 @@ export default function fixExports(unusedExports, config) {
 }
 
 export function removeExportDeclarations(source, identifierNames) {
-  const identifiers = identifierNames.map(lodash.escapeRegExp).join('|');
+  const identifiers = identifierNames.map(escapeRegExp).join('|');
 
   const re = new RegExp(
     `export\\s+((const|function)\\s+(${identifiers}))\\b`,

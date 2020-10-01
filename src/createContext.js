@@ -1,7 +1,7 @@
 import fs from 'fs';
 import assert from 'assert';
 import resolve from 'enhanced-resolve';
-import lodash from 'lodash';
+import { isPlainObject } from './utils';
 
 export const defaultParserOptions = {
   sourceType: 'module',
@@ -49,17 +49,17 @@ export default function createContext(userConfig) {
 
 function assertConfig(config) {
   assert(
-    lodash.isString(config.projectRoot),
+    typeof config.projectRoot === 'string',
     'Conifg "projectRoot" value must be a string'
   );
 
   assert(
-    lodash.isArray(config.sourcePaths),
+    Array.isArray(config.sourcePaths),
     'Conifg "sourcePaths" must be an array'
   );
 
   assert(
-    lodash.isPlainObject(config.parserOptions),
+    isPlainObject(config.parserOptions),
     'Missing valid "parserOptions" value'
   );
 
