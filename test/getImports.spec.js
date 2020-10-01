@@ -28,7 +28,6 @@ describe('getImports', () => {
             ],
             [exportAllSrcPath]: ['firstName', 'lastName'],
           },
-          relativePath: path.join('src', 'imports-sample.js'),
           sourcePath: sourceFile,
         },
       ];

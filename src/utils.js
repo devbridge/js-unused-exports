@@ -1,5 +1,4 @@
 import glob from 'glob';
-import path from 'path';
 
 /**
  *
@@ -14,13 +13,4 @@ export function getSourcePaths(globPatterns, config) {
   };
 
   return globPatterns.flatMap((globPattern) => glob.sync(globPattern, options));
-}
-
-/**
- * Returns function which converts absolute path to relative.
- *
- * @param {string} projectRoot Project root directory path
- */
-export function toRelativePath(projectRoot) {
-  return (sourcePath) => path.relative(projectRoot, sourcePath);
 }

@@ -15,22 +15,16 @@ import {
   isImportSpecifier,
 } from '@babel/types';
 import { getExportedIdentifiers } from './getExports';
-import { toRelativePath } from './utils';
 
 export default function getImports(sourcePaths, ctx) {
-  const { projectRoot } = ctx.config;
-  const toRelative = toRelativePath(projectRoot);
-
   return sourcePaths
     .map((sourcePath) => {
       const source = fs.readFileSync(sourcePath, 'utf8');
-      const relativePath = toRelative(sourcePath);
       const importData = getImportData(source, sourcePath, ctx);
       const imports = groupImports(importData);
 
       return {
         sourcePath,
-        relativePath,
         imports,
       };
     })

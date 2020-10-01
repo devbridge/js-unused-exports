@@ -4,12 +4,10 @@ describe('extractUnusedExports', () => {
   describe('extractUnusedExports()', () => {
     it('gets exported identifiers from source file', () => {
       const sourcePath = '/project/src/Arrows';
-      const relativePath = 'src/Arrows';
 
       const exportedNames = [
         {
           sourcePath,
-          relativePath,
           exports: [
             { name: 'ArrowLeft' },
             { name: 'ArrowCenter' },
@@ -21,13 +19,11 @@ describe('extractUnusedExports', () => {
       const importedNames = [
         {
           sourcePath: '/project/src/fileA',
-          relativePath: 'src/fileA',
-          imports: { [relativePath]: ['ArrowLeft'] },
+          imports: { [sourcePath]: ['ArrowLeft'] },
         },
         {
           sourcePath: '/project/src/fileB',
-          relativePath: 'src/fileB',
-          imports: { [relativePath]: ['ArrowRight'] },
+          imports: { [sourcePath]: ['ArrowRight'] },
         },
       ];
 
@@ -35,7 +31,6 @@ describe('extractUnusedExports', () => {
 
       expect(result).toEqual([
         {
-          relativePath,
           sourcePath,
           unusedExports: [{ name: 'ArrowCenter' }],
         },
@@ -44,12 +39,10 @@ describe('extractUnusedExports', () => {
 
     it('includes unused exports from tests', () => {
       const sourcePath = '/project/src/Arrows';
-      const relativePath = 'src/Arrows';
 
       const exportedNames = [
         {
           sourcePath,
-          relativePath,
           exports: [
             { name: 'ArrowLeft' },
             { name: 'ArrowCenter' },
@@ -61,33 +54,24 @@ describe('extractUnusedExports', () => {
       const importedNames = [
         {
           sourcePath: '/project/src/fileA',
-          relativePath: 'src/fileA',
-          imports: { [relativePath]: ['ArrowLeft'] },
+          imports: { [sourcePath]: ['ArrowLeft'] },
         },
         {
           sourcePath: '/project/tests/Arrows/fileB',
-          relativePath: 'tests/Arrows/fileB',
-          imports: { [relativePath]: ['ArrowRight'] },
+          imports: { [sourcePath]: ['ArrowRight'] },
         },
       ];
 
-      const importNamesTest = [
-        {
-          sourcePath: '/project/tests/Arrows/fileB',
-          relativePath: 'tests/Arrows/fileB',
-          imports: { [relativePath]: ['ArrowRight'] },
-        },
-      ];
+      const testFiles = ['/project/tests/Arrows/fileB'];
 
       const result = extractUnusedExports(
         exportedNames,
         importedNames,
-        importNamesTest
+        testFiles
       );
 
       expect(result).toEqual([
         {
-          relativePath,
           sourcePath,
           unusedExports: [{ name: 'ArrowCenter' }, { name: 'ArrowRight' }],
         },

@@ -9,7 +9,6 @@ import {
   isOpaqueType,
   isInterfaceDeclaration,
 } from '@babel/types';
-import { toRelativePath } from './utils';
 
 export default function getExports(sourcePaths, ctx) {
   return sourcePaths.reduce((result, sourcePath) => {
@@ -29,13 +28,11 @@ export default function getExports(sourcePaths, ctx) {
 }
 
 export function getExportData(source, sourcePath, ctx) {
-  const { projectRoot, parserOptions } = ctx.config;
+  const { parserOptions } = ctx.config;
   const exports = getExportedIdentifiers(source, parserOptions);
-  const toRelative = toRelativePath(projectRoot);
 
   return {
     sourcePath,
-    relativePath: toRelative(sourcePath),
     exports,
   };
 }
