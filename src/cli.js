@@ -15,7 +15,7 @@ import { isPlainObject } from './utils';
 const warn = chalk.yellow;
 const info = chalk.green;
 
-export function execute(args) {
+export default function execute(args) {
   const userConfig = getConfig(args.config);
 
   const ctx = createContext(userConfig);
