@@ -21,20 +21,20 @@ export function execute(args) {
   const ctx = createContext(userConfig);
   const { config } = ctx;
 
-  printBox(`Current Configuration`);
-  console.log(JSON.stringify(ctx.config, null, 2));
-
+  if (args.verbose) {
+    printBox(`Current Configuration`);
+    console.log(JSON.stringify(ctx.config, null, 2));
+  }
   const timeStart = Date.now();
 
   const sourceFiles = getSourcePaths(config.sourcePaths, config);
   const testFiles = getSourcePaths(config.testPaths, config);
   const exportedNames = getExports(sourceFiles, ctx);
   const importedNames = getImports(sourceFiles, ctx);
-  const importedNamesTest = getImports(testFiles, ctx);
   const unusedExports = extractUnusedExports(
     exportedNames,
     importedNames,
-    importedNamesTest
+    testFiles
   );
 
   warnForUnknownPackages(ctx.unknownPackages);
