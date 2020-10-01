@@ -1,21 +1,16 @@
 import path from 'path';
 import { parse } from '@babel/parser';
+import resolve from 'enhanced-resolve';
 
 import getImports, { getImportDetails } from '../src/getImports';
 import createContext from '../src/createContext';
 
 describe('getImports', () => {
-  const projectRoot = path.join(__dirname, 'sample-project');
-
   describe('getImports()', () => {
     it('extracts imports from file', () => {
+      const projectRoot = path.join(__dirname, 'sample-project');
       const sourceFile = path.join(projectRoot, 'src/imports-sample.js');
-
-      const ctx = createContext({
-        projectRoot,
-        aliases: {},
-        sourcePaths: [],
-      });
+      const ctx = createContext({ projectRoot });
 
       const result = getImports([sourceFile], ctx);
       const exportAllSrcPath = path.join(projectRoot, 'src/all-export.js');
@@ -43,11 +38,8 @@ describe('getImports', () => {
   });
 
   describe('getExportName()', () => {
-    const ctx = createContext({
-      projectRoot,
-      aliases: {},
-      sourcePaths: [],
-    });
+    const projectRoot = path.join(__dirname, 'sample-project');
+    const ctx = createContext({ projectRoot });
 
     const testGetImportDetails = (source, expectations) => {
       const ast = parse(source, ctx.config.parserOptions);
@@ -176,6 +168,44 @@ something.lastName;
 
     it('Unknown', () => {
       testGetImportDetails(`{}`, []);
+    });
+  });
+
+  describe('getExportName() with custom resolver', () => {
+    const projectRoot = path.join(
+      __dirname,
+      'monorepo-project/packages/common'
+    );
+
+    const resolveWeb = resolve.create.sync({ extensions: ['.web.js'] });
+    const resolveNative = resolve.create.sync({ extensions: ['.native.js'] });
+
+    const ctx = createContext({
+      projectRoot,
+      resolve: (...args) => [resolveWeb(...args), resolveNative(...args)],
+    });
+
+    const testGetImportDetails = (source, listOfExpectations) => {
+      const ast = parse(source, ctx.config.parserOptions);
+      const node = ast.program.body[0];
+      const sourcePath = path.join(projectRoot, 'index.js');
+
+      getImportDetails(node, sourcePath, ast, ctx).forEach(
+        ({ specifiers }, index) => {
+          const expectations = listOfExpectations[index];
+          expect(specifiers).toHaveLength(expectations.length);
+          specifiers.forEach((specifier) =>
+            expect(expectations).toContain(specifier)
+          );
+        }
+      );
+    };
+
+    it('ExportAllDeclaration', () => {
+      testGetImportDetails(`export * from './src/AppState'`, [
+        ['default', 'Platform', 'OnlyWeb'],
+        ['default', 'Platform', 'OnlyNative'],
+      ]);
     });
   });
 });

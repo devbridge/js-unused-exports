@@ -127,7 +127,7 @@ function printWarning(message) {
 }
 
 function warnForUnknownPackages(unknownPackages) {
-  const unresolvePackages = _.keys(unknownPackages);
+  const unresolvePackages = unknownPackages;
 
   if (unresolvePackages.length === 0) {
     return;
@@ -145,7 +145,7 @@ function warnForUnknownPackages(unknownPackages) {
 }
 
 function warnForFailedResolutions(failedResolutions) {
-  const importPath = _.sortBy(_.keys(failedResolutions));
+  const importPath = _.sortBy(failedResolutions);
 
   if (importPath.length === 0) {
     return;

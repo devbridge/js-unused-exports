@@ -59,6 +59,8 @@ describe('utils', () => {
             'packages/common/native.js',
             'packages/common/web.js',
             'packages/common/src/logic.js',
+            'packages/common/src/AppState.native.js',
+            'packages/common/src/AppState.web.js',
           ],
           projectRoot
         );

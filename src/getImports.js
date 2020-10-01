@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import resolve from 'enhanced-resolve';
+import { getType, PathType } from 'enhanced-resolve/lib/util/path';
 import { parse } from '@babel/parser';
 import traverse from '@babel/traverse';
 import {
@@ -58,7 +58,7 @@ function getImportData(source, srcPath, ctx) {
   const nodes = ast.program.body.filter(isImport);
 
   return nodes
-    .map((node) => getImportDetails(node, srcPath, ast, ctx))
+    .flatMap((node) => getImportDetails(node, srcPath, ast, ctx))
     .filter(
       ({ specifiers, from }) => specifiers.length && !isIgnoredImport(from, ctx)
     );
@@ -127,68 +127,75 @@ export function getImportDetails(node, srcPath, ast, ctx) {
   if (!node.source || !node.source.value) {
     return { specifiers: [] };
   }
-  const { source, specifiers = [] } = node;
-  const from = resolvePath(source.value, srcPath, ctx);
+  const {
+    source: { value: sourceValue },
+    specifiers: nodeSpecifiers = [],
+  } = node;
+  const from = resolvePath(sourceValue, srcPath, ctx);
+
+  if (!from) {
+    return { specifiers: [] };
+  }
+
+  const flattenDetails = Array.isArray(from)
+    ? (specifiers) => from.map((f) => ({ from: f, specifiers }))
+    : (specifiers) => ({ from, specifiers });
 
   // Case: import sampleFile, { firstName } from './sample-file';
   if (isImportDeclaration(node)) {
-    const specifierNames = specifiers
+    const specifiers = nodeSpecifiers
       .filter(isImportSpecifier)
       .map((specifier) => specifier.imported && specifier.imported.name)
       .filter(Boolean);
 
-    return {
-      from,
-      specifiers: [
-        ...getDefaultSpecifierNames(node, ast),
-        ...specifierNames,
-        ...getNamespaceSpecifierNames(node, ast),
-      ],
-    };
+    return flattenDetails([
+      ...getDefaultSpecifierNames(node, ast),
+      ...specifiers,
+      ...getNamespaceSpecifierNames(node, ast),
+    ]);
   }
 
   // Case: export { default as sampleFile, firstName } from './sample-file';
   if (isExportNamedDeclaration(node)) {
-    const specifierNames = specifiers
+    const specifiers = nodeSpecifiers
       .filter(isExportSpecifier)
       .map((specifier) => specifier.local.name);
 
-    return {
-      from,
-      specifiers: specifierNames,
-    };
+    return flattenDetails(specifiers);
   }
 
   // Case: export * from './sample-file';
   if (isExportAllDeclaration(node)) {
-    const { config } = ctx;
+    const { parserOptions } = ctx.config;
 
-    const sourcePath = resolvePath(node.source.value, srcPath, ctx);
-    const source = fs.readFileSync(sourcePath, 'utf8');
-
-    const specifierNames = getExportedIdentifiers(
-      source,
-      config.parserOptions
-    ).map(({ name }) => name);
-
-    return {
-      from,
-      specifiers: specifierNames,
+    const getSpecifiersNames = (sourcePath) => {
+      const source = fs.readFileSync(sourcePath, 'utf8');
+      return getExportedIdentifiers(source, parserOptions).map(
+        ({ name }) => name
+      );
     };
+
+    return Array.isArray(from)
+      ? from.map((f) => ({ from: f, specifiers: getSpecifiersNames(f) }))
+      : { from, specifiers: getSpecifiersNames(from) };
   }
 
-  return {
-    from,
-    specifiers: [],
-  };
+  return flattenDetails([]);
+}
+
+function isPackage(importValue) {
+  return getType(importValue) !== PathType.Relative;
 }
 
 function resolvePath(importValue, currentPath, ctx) {
+  const { resolve } = ctx.config;
   try {
-    return resolve.sync(path.dirname(currentPath), importValue);
+    return resolve(path.dirname(currentPath), importValue);
   } catch (error) {
-    // Add to failed resolutions list
-    ctx.failedResolutions[importValue] = true;
-    return importValue;
+    if (isPackage(importValue)) {
+      ctx.unknownPackages.push(importValue);
+    } else {
+      ctx.failedResolutions.push(importValue);
+    }
   }
 }

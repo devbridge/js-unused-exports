@@ -1,6 +1,6 @@
-import path from 'path';
 import fs from 'fs';
 import assert from 'assert';
+import resolve from 'enhanced-resolve';
 import lodash from 'lodash';
 
 export const defaultParserOptions = {
@@ -30,20 +30,20 @@ export default function createContext(userConfig) {
     ...CONFIG_DEFAULTS,
     ...userConfig,
     projectRoot: userConfig.projectRoot || process.cwd(),
+    resolve:
+      userConfig.resolve ||
+      resolve.create.sync({
+        alias: userConfig.aliases,
+        extensions: ['.js', '.jsx'],
+      }),
   };
 
   assertConfig(config);
 
-  const pkgJsonPath = path.join(config.projectRoot, 'package.json');
-  const { dependencies, devDependencies } = JSON.parse(
-    fs.readFileSync(pkgJsonPath, 'utf8')
-  );
-
   return {
     config,
-    dependencies: { ...dependencies, ...devDependencies },
-    unknownPackages: {},
-    failedResolutions: {},
+    unknownPackages: [],
+    failedResolutions: [],
   };
 }
 
