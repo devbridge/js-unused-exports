@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { parse } from '@babel/parser';
+import resolve from 'enhanced-resolve';
 
 import getExports, {
   getExportData,
@@ -89,13 +90,13 @@ export const C = 789;`,
 
     it('named export from', () => {
       testExportData(
-        `export { firstName, lastName, getName } from './src/imports-sample-.js';`,
+        `export { firstName, lastName, getName } from './src/imports-sample.js';`,
         ['firstName', 'lastName', 'getName']
       );
     });
 
-    it.skip('all export from', () => {
-      testExportData(`export * from './src/imports-sample-.js';`, [
+    it('all export from', () => {
+      testExportData(`export * from './src/all-export.js';`, [
         'firstName',
         'lastName',
         'getFullName',
@@ -106,12 +107,46 @@ export const C = 789;`,
     });
   });
 
+  describe('getExportData() with custom resolver', () => {
+    const projectRoot = path.join(
+      __dirname,
+      'monorepo-project/packages/common'
+    );
+
+    const createResolver = () => {
+      const resolveWeb = resolve.create.sync({ extensions: ['.web.js'] });
+      const resolveNative = resolve.create.sync({ extensions: ['.native.js'] });
+
+      return (...args) => [resolveWeb(...args), resolveNative(...args)];
+    };
+
+    const testExportData = (source, exportNames) => {
+      const sourcePath = path.join(projectRoot, 'index.js');
+
+      const ctx = createContext({ projectRoot, resolve: createResolver() });
+      const { exports: results } = getExportData(source, sourcePath, ctx);
+
+      expect(results).toHaveLength(exportNames.length);
+      results.forEach(({ name }) => expect(exportNames).toContain(name));
+    };
+
+    it('ExportAllDeclaration', () => {
+      testExportData(`export * from './src/AppState'`, [
+        'default',
+        'Platform',
+        'OnlyWeb',
+        'OnlyNative',
+      ]);
+    });
+  });
+
   describe('getExportedIdentifiers()', () => {
     it('gets exported identifiers from source file', () => {
-      const filePath = path.join(projectRoot, 'src/exports-sample.js');
-      const source = fs.readFileSync(filePath, 'utf8');
+      const sourcePath = path.join(projectRoot, 'src/exports-sample.js');
+      const ctx = createContext({ projectRoot, sourcePaths: [sourcePath] });
+      const source = fs.readFileSync(sourcePath, 'utf8');
 
-      const result = getExportedIdentifiers(source, defaultParserOptions);
+      const result = getExportedIdentifiers(source, sourcePath, ctx);
       const identifiers = result.map((item) => item.name);
 
       expect(identifiers).toEqual([
@@ -157,7 +192,7 @@ export const C = 789;`,
 
     it('ExportNamedDeclaration', () => {
       testGetExportName(
-        `export { firstName, lastName, getName } from './src/imports-sample-.js';`,
+        `export { firstName, lastName, getName } from './src/imports-sample.js';`,
         ['firstName', 'lastName', 'getName']
       );
     });

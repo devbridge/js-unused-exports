@@ -1,7 +1,10 @@
 import fs from 'fs';
+import path from 'path';
 import { parse } from '@babel/parser';
 import {
   isExportDefaultDeclaration,
+  isExportNamedDeclaration,
+  isExportAllDeclaration,
   isVariableDeclaration,
   isFunctionDeclaration,
   isClassDeclaration,
@@ -10,26 +13,23 @@ import {
   isInterfaceDeclaration,
 } from '@babel/types';
 
+function createIsNotIgnoredFile(ignoreExportPatterns = []) {
+  const ignores = ignoreExportPatterns.map((pattern) => new RegExp(pattern));
+  return (sourcePath) => !ignores.some((regExp) => regExp.test(sourcePath));
+}
+
 export default function getExports(sourcePaths, ctx) {
-  return sourcePaths.reduce((result, sourcePath) => {
-    const { ignoreExportPatterns = [] } = ctx.config;
-    const isIgnored = (pattern) => new RegExp(pattern).test(sourcePath);
+  const { ignoreExportPatterns = [] } = ctx.config;
+  const isNotIgnored = createIsNotIgnoredFile(ignoreExportPatterns);
 
-    if (ignoreExportPatterns.some(isIgnored)) {
-      return result;
-    }
-
+  return sourcePaths.filter(isNotIgnored).flatMap((sourcePath) => {
     const source = fs.readFileSync(sourcePath, 'utf8');
-    const exportData = getExportData(source, sourcePath, ctx);
-
-    result.push(exportData);
-    return result;
-  }, []);
+    return getExportData(source, sourcePath, ctx);
+  });
 }
 
 export function getExportData(source, sourcePath, ctx) {
-  const { parserOptions } = ctx.config;
-  const exports = getExportedIdentifiers(source, parserOptions);
+  const exports = getExportedIdentifiers(source, sourcePath, ctx);
 
   return {
     sourcePath,
@@ -44,8 +44,9 @@ export function getExportData(source, sourcePath, ctx) {
  */
 function isExportDeclaration(node) {
   return (
-    node.type === 'ExportNamedDeclaration' ||
-    node.type === 'ExportDefaultDeclaration'
+    isExportNamedDeclaration(node) ||
+    isExportDefaultDeclaration(node) ||
+    isExportAllDeclaration(node)
   );
 }
 
@@ -56,9 +57,13 @@ function isExportDeclaration(node) {
  * @param {string} source Source code as string
  * @param {Object} parserOptions Parser options
  */
-export function getExportedIdentifiers(source, parserOptions) {
+export function getExportedIdentifiers(source, sourcePath, ctx) {
+  const { parserOptions } = ctx.config;
+
   const ast = parse(source, parserOptions);
-  return ast.program.body.filter(isExportDeclaration).flatMap(getExportName);
+  return ast.program.body
+    .filter(isExportDeclaration)
+    .flatMap((node) => getExportName(node, sourcePath, ctx));
 }
 
 /**
@@ -67,20 +72,54 @@ export function getExportedIdentifiers(source, parserOptions) {
  *
  * @param {AstNode} node
  */
-export function getExportName(node) {
+export function getExportName(node, sourcePath, ctx) {
+  const { loc, declaration } = node;
   if (isExportDefaultDeclaration(node)) {
     return {
       name: 'default',
-      loc: node.loc,
+      loc,
     };
   }
 
-  const { declaration } = node;
+  if (isExportAllDeclaration(node)) {
+    const { resolve } = ctx.config;
+    const { value: sourceValue } = node.source;
+
+    const getExportNamesFromImport = (importedSourcePaths) => {
+      return importedSourcePaths
+        .flatMap((importedSourcePath) => {
+          const importedSource = fs.readFileSync(importedSourcePath, 'utf8');
+          return getExportedIdentifiers(
+            importedSource,
+            importedSourcePath,
+            ctx
+          ).flatMap(({ name }) => name);
+        })
+        .filter((name, index, arr) => !arr.includes(name, index + 1));
+    };
+
+    try {
+      const importedSourcePaths = resolve(
+        path.dirname(sourcePath),
+        sourceValue
+      );
+
+      const names = getExportNamesFromImport(
+        Array.isArray(importedSourcePaths)
+          ? importedSourcePaths
+          : [importedSourcePaths]
+      );
+
+      return names.map((name) => ({ name, loc }));
+    } catch (error) {
+      return [];
+    }
+  }
 
   if (isVariableDeclaration(declaration)) {
     return declaration.declarations.map((declaration) => ({
       name: declaration.id.name,
-      loc: node.loc,
+      loc,
     }));
   }
 
@@ -93,7 +132,7 @@ export function getExportName(node) {
   ) {
     return {
       name: declaration.id.name,
-      loc: node.loc,
+      loc,
     };
   }
 

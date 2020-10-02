@@ -160,11 +160,9 @@ export function getImportDetails(node, srcPath, ast, ctx) {
 
   // Case: export * from './sample-file';
   if (isExportAllDeclaration(node)) {
-    const { parserOptions } = ctx.config;
-
     const getSpecifiersNames = (sourcePath) => {
       const source = fs.readFileSync(sourcePath, 'utf8');
-      return getExportedIdentifiers(source, parserOptions).map(
+      return getExportedIdentifiers(source, sourcePath, ctx).map(
         ({ name }) => name
       );
     };
