@@ -175,19 +175,21 @@ export function getImportDetails(node, srcPath, ast, ctx) {
   return flattenDetails([]);
 }
 
-function isPackage(importValue) {
+export function isPackage(importValue) {
   return getType(importValue) !== PathType.Relative;
 }
 
-function resolvePath(importValue, currentPath, ctx) {
+export function resolvePath(importValue, currentPath, ctx) {
   const { resolve } = ctx.config;
+  const currentDir = path.dirname(currentPath);
   try {
-    return resolve(path.dirname(currentPath), importValue);
+    return resolve(currentDir, importValue);
   } catch (error) {
     if (isPackage(importValue)) {
       ctx.unknownPackages.push(importValue);
     } else {
-      ctx.failedResolutions.push(importValue);
+      const filePath = path.resolve(currentDir, importValue);
+      ctx.failedResolutions.push(filePath);
     }
   }
 }

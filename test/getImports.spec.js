@@ -1,8 +1,13 @@
+import fs from 'fs';
 import path from 'path';
 import { parse } from '@babel/parser';
 import resolve from 'enhanced-resolve';
 
-import getImports, { getImportDetails } from '../src/getImports';
+import getImports, {
+  getImportDetails,
+  isPackage,
+  resolvePath,
+} from '../src/getImports';
 import createContext from '../src/createContext';
 
 describe('getImports', () => {
@@ -205,6 +210,139 @@ something.lastName;
         ['default', 'Platform', 'OnlyWeb'],
         ['default', 'Platform', 'OnlyNative'],
       ]);
+    });
+  });
+
+  describe('isPackage()', () => {
+    it('package', () => {
+      expect(isPackage('enhanced-resolve')).toBe(true);
+    });
+
+    it('package with path', () => {
+      expect(isPackage('enhanced-resolve/lib/util/path')).toBe(true);
+      expect(isPackage('enhanced-resolve/lib/util/path.js')).toBe(true);
+    });
+
+    it('scoped package', () => {
+      expect(isPackage('@babel/parser')).toBe(true);
+    });
+
+    it('scoped package with path', () => {
+      expect(isPackage('@babel/parser//lib/index')).toBe(true);
+      expect(isPackage('@babel/parser//lib/index.js')).toBe(true);
+    });
+
+    it('sibling file', () => {
+      expect(isPackage('./otherFile')).toBe(false);
+      expect(isPackage('./otherFile.js')).toBe(false);
+    });
+
+    it('parent file', () => {
+      expect(isPackage('../otherFile')).toBe(false);
+      expect(isPackage('../otherFile.js')).toBe(false);
+    });
+
+    it('parent folder', () => {
+      expect(isPackage('../folder/otherFile')).toBe(false);
+      expect(isPackage('../folder/otherFile.js')).toBe(false);
+    });
+
+    describe('resolvePath()', () => {
+      const projectRoot = path.join(__dirname, 'sample-project');
+      const sourceFile = path.join(projectRoot, 'src/imports-sample.js');
+      const ctx = createContext({ projectRoot });
+
+      it('package', () => {
+        const resolvedPath = resolvePath('enhanced-resolve', sourceFile, ctx);
+        expect(typeof resolvedPath).toBe('string');
+      });
+
+      it('package with path', () => {
+        const resolvedPath = resolvePath(
+          'enhanced-resolve/lib/util/path',
+          sourceFile,
+          ctx
+        );
+        expect(typeof resolvedPath).toBe('string');
+      });
+
+      it('missing package', () => {
+        const resolvedPath = resolvePath('not-found', sourceFile, ctx);
+        expect(typeof resolvedPath).toBe('undefined');
+        expect(ctx.unknownPackages).toContain('not-found');
+      });
+
+      it('file', () => {
+        const resolvedPath = resolvePath('./all-export', sourceFile, ctx);
+        expect(typeof resolvedPath).toBe('string');
+      });
+
+      it('missing file', () => {
+        const resolvedPath = resolvePath('./file-not-found', sourceFile, ctx);
+        expect(typeof resolvedPath).toBe('undefined');
+        expect(ctx.failedResolutions).toContain(
+          path.join(projectRoot, 'src/file-not-found')
+        );
+      });
+    });
+
+    describe('resolvePath() monorepo custom resolve', () => {
+      const projectRoot = path.join(__dirname, 'monorepo-project');
+      const sourceFile = path.join(projectRoot, 'packages/client-web/entry.js');
+      const mockResolve = jest.fn(() =>
+        path.join(projectRoot, 'packages/common')
+      );
+      const ctx = createContext({ projectRoot, resolve: mockResolve });
+
+      it('aliases', () => {
+        resolvePath('@monorepo/common', sourceFile, ctx);
+        expect(mockResolve).toHaveBeenCalled();
+      });
+    });
+
+    describe('resolvePath() monorepo with aliases', () => {
+      const projectRoot = path.join(__dirname, 'monorepo-project');
+      const sourceFile = path.join(projectRoot, 'packages/client-web/entry.js');
+
+      const ctx = createContext({
+        projectRoot,
+        aliases: {
+          '@monorepo/common': path.join(projectRoot, 'packages/common'),
+        },
+      });
+
+      it('aliases', () => {
+        const resolvedPath = resolvePath('@monorepo/common', sourceFile, ctx);
+        expect(typeof resolvedPath).toBe('string');
+      });
+    });
+
+    describe('resolvePath() monorepo with workspaces', () => {
+      const projectRoot = path.join(__dirname, 'monorepo-project');
+      const moduleDir = path.join(projectRoot, 'node_modules');
+      const packagesDir = path.join(moduleDir, '@monorepo');
+      const commonDir = path.join(packagesDir, 'common');
+
+      beforeEach(() => {
+        fs.mkdirSync(moduleDir);
+        fs.mkdirSync(packagesDir);
+        fs.symlinkSync('../../packages/common', commonDir);
+      });
+
+      afterEach(() => {
+        fs.unlinkSync(commonDir);
+        fs.rmdirSync(packagesDir);
+        fs.rmdirSync(moduleDir);
+      });
+
+      const sourceFile = path.join(projectRoot, 'packages/client-web/entry.js');
+
+      const ctx = createContext({ projectRoot });
+
+      it('symlinked', () => {
+        const resolvedPath = resolvePath('@monorepo/common', sourceFile, ctx);
+        expect(typeof resolvedPath).toBe('string');
+      });
     });
   });
 });
