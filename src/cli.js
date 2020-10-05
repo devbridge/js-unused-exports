@@ -15,16 +15,8 @@ import { isPlainObject } from './utils';
 const warn = chalk.yellow;
 const info = chalk.green;
 
-export default function execute(args) {
-  const userConfig = getConfig(args.config);
-
-  const ctx = createContext(userConfig);
+export function checkUnused(ctx) {
   const { config } = ctx;
-
-  if (args.verbose) {
-    printBox(`Current Configuration`);
-    console.log(JSON.stringify(ctx.config, null, 2));
-  }
   const timeStart = Date.now();
 
   const sourceFiles = getSourcePaths(config.sourcePaths, config);
@@ -37,8 +29,44 @@ export default function execute(args) {
     testFiles
   );
 
-  warnForUnknownPackages(ctx.unknownPackages);
-  warnForFailedResolutions(ctx.failedResolutions);
+  const timeEnd = Date.now();
+  const timeTook = timeEnd - timeStart;
+
+  const { unknownPackages, failedResolutions } = ctx;
+
+  return {
+    sourceFileCount: sourceFiles.length,
+    testFileCount: testFiles.length,
+    exportedNames,
+    importedNames,
+    unusedExports,
+    unknownPackages,
+    failedResolutions,
+    timeTook,
+  };
+}
+
+export default function execute(args) {
+  const userConfig = getConfig(args.config);
+  const ctx = createContext(userConfig);
+  const { config } = ctx;
+
+  if (args.verbose) {
+    printBox(`Current Configuration`);
+    console.log(JSON.stringify(ctx.config, null, 2));
+  }
+
+  const summary = checkUnused(ctx);
+  const {
+    unusedExports,
+    exportedNames,
+    importedNames,
+    unknownPackages,
+    failedResolutions,
+  } = summary;
+
+  warnForUnknownPackages(unknownPackages);
+  warnForFailedResolutions(failedResolutions, config.projectRoot);
 
   if (args.fix) {
     fixExports(unusedExports, config);
@@ -62,16 +90,6 @@ export default function execute(args) {
       printWarning(`WARNING: output dir deas not exist - ${dirPath}`);
     }
   }
-
-  const timeEnd = Date.now();
-  const timeTook = timeEnd - timeStart;
-
-  const summary = {
-    sourceFileCount: sourceFiles.length,
-    testFileCount: testFiles.length,
-    unusedExports,
-    timeTook,
-  };
 
   printSummary(summary);
 }
@@ -146,7 +164,7 @@ function warnForUnknownPackages(unknownPackages) {
   });
 }
 
-function warnForFailedResolutions(failedResolutions) {
+function warnForFailedResolutions(failedResolutions, projectRoot) {
   if (!failedResolutions.length) {
     return;
   }
@@ -160,7 +178,8 @@ function warnForFailedResolutions(failedResolutions) {
   printWarning(message);
 
   [...failedResolutions].sort().forEach((importPath) => {
-    printWarning(`  ${importPath} `);
+    const relativePath = path.relative(projectRoot, importPath);
+    printWarning(`  ${relativePath} `);
   });
 }
 

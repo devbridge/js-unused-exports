@@ -9,6 +9,6 @@ import { firstName as givenName, lastName as familyName } from './all-export';
 // Scoped package import
 import { parse } from '@babel/parser';
 
-const fakeFunction = () => {
+export const fakeFunction = () => {
   sample(firstName, lastName, getFullName, Family, parse);
 };

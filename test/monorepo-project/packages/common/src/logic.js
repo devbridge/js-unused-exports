@@ -1,3 +1,5 @@
+import { Platform } from './AppState';
+
 export const DEFAULTS = {
   A: 1,
   B: 2,
@@ -6,5 +8,5 @@ export const DEFAULTS = {
 };
 
 export function logic() {
-  // do nothing
+  console.log(Platform);
 }
