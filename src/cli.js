@@ -96,6 +96,8 @@ export default function execute(args) {
   }
 
   printSummary(summary);
+
+  return summary;
 }
 
 function getConfig(configPath) {
