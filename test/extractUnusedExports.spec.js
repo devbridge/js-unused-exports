@@ -37,16 +37,15 @@ describe('extractUnusedExports', () => {
       ]);
     });
 
-    it('includes unused exports from tests', () => {
+    it('only one match is needed when exports.name is an array', () => {
       const sourcePath = '/project/src/Arrows';
 
       const exportedNames = [
         {
           sourcePath,
           exports: [
-            { name: 'ArrowLeft' },
+            { name: ['ArrowLeft', 'ArrowRight'] },
             { name: 'ArrowCenter' },
-            { name: 'ArrowRight' },
           ],
         },
       ];
@@ -57,23 +56,17 @@ describe('extractUnusedExports', () => {
           imports: { [sourcePath]: ['ArrowLeft'] },
         },
         {
-          sourcePath: '/project/tests/Arrows/fileB',
+          sourcePath: '/project/src/fileB',
           imports: { [sourcePath]: ['ArrowRight'] },
         },
       ];
 
-      const testFiles = ['/project/tests/Arrows/fileB'];
-
-      const result = extractUnusedExports(
-        exportedNames,
-        importedNames,
-        testFiles
-      );
+      const result = extractUnusedExports(exportedNames, importedNames, []);
 
       expect(result).toEqual([
         {
           sourcePath,
-          unusedExports: [{ name: 'ArrowCenter' }, { name: 'ArrowRight' }],
+          unusedExports: [{ name: 'ArrowCenter' }],
         },
       ]);
     });

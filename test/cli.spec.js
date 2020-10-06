@@ -38,12 +38,6 @@ describe('checkUnused()', () => {
     ]);
 
     testUnusedExports(unusedExports, {
-      'sample-project/src/all-export.js': [
-        'getFullName',
-        'getName',
-        'Family',
-        'default',
-      ],
       'sample-project/src/imports-sample.js': ['fakeFunction'],
     });
   });

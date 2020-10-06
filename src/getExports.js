@@ -85,35 +85,18 @@ export function getExportName(node, sourcePath, ctx) {
     const { resolve } = ctx.config;
     const { value: sourceValue } = node.source;
 
-    const getExportNamesFromImport = (importedSourcePaths) => {
-      return importedSourcePaths
-        .flatMap((importedSourcePath) => {
-          const importedSource = fs.readFileSync(importedSourcePath, 'utf8');
-          return getExportedIdentifiers(
-            importedSource,
-            importedSourcePath,
-            ctx
-          ).flatMap(({ name }) => name);
-        })
-        .filter((name, index, arr) => !arr.includes(name, index + 1));
-    };
-
+    let resolvedSourcePaths;
     try {
-      const importedSourcePaths = resolve(
-        path.dirname(sourcePath),
-        sourceValue
-      );
-
-      const names = getExportNamesFromImport(
-        Array.isArray(importedSourcePaths)
-          ? importedSourcePaths
-          : [importedSourcePaths]
-      );
-
-      return names.map((name) => ({ name, loc }));
+      const sourcePaths = resolve(path.dirname(sourcePath), sourceValue);
+      resolvedSourcePaths = Array.isArray(sourcePaths)
+        ? sourcePaths
+        : [sourcePaths];
     } catch (error) {
       return [];
     }
+
+    const names = getExportNamesFromImport(resolvedSourcePaths, ctx);
+    return { loc, name: names };
   }
 
   if (isVariableDeclaration(declaration)) {
@@ -145,4 +128,14 @@ export function getExportName(node, sourcePath, ctx) {
 
   const { type } = declaration || node;
   throw new Error(`Unknow declaration type: ${type}`);
+}
+
+function getExportNamesFromImport(sourcePaths, ctx) {
+  return sourcePaths
+    .flatMap((sourcePath) => {
+      const source = fs.readFileSync(sourcePath, 'utf8');
+      return getExportedIdentifiers(source, sourcePath, ctx);
+    })
+    .flatMap(({ name }) => name)
+    .filter((name, index, arr) => !arr.includes(name, index + 1));
 }

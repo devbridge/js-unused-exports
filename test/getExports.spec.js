@@ -62,7 +62,13 @@ describe('getExports', () => {
       const { exports: results } = getExportData(source, sourcePath, ctx);
 
       expect(results).toHaveLength(exportNames.length);
-      results.forEach(({ name }) => expect(exportNames).toContain(name));
+      results.forEach(({ name }, index) => {
+        if (Array.isArray(name)) {
+          name.forEach((n) => expect(exportNames[index]).toContain(n));
+        } else {
+          expect(exportNames).toContain(name);
+        }
+      });
     };
 
     it('nothing', () => {
@@ -95,14 +101,23 @@ export const C = 789;`,
       );
     });
 
+    it('named export from with renaming', () => {
+      testExportData(
+        `export { firstName as givenName, lastName as familyName } from './src/imports-sample.js';`,
+        ['givenName', 'familyName']
+      );
+    });
+
     it('all export from', () => {
       testExportData(`export * from './src/all-export.js';`, [
-        'firstName',
-        'lastName',
-        'getFullName',
-        'getName',
-        'Family',
-        'default',
+        [
+          'firstName',
+          'lastName',
+          'getFullName',
+          'getName',
+          'Family',
+          'default',
+        ],
       ]);
     });
   });
@@ -127,15 +142,14 @@ export const C = 789;`,
       const { exports: results } = getExportData(source, sourcePath, ctx);
 
       expect(results).toHaveLength(exportNames.length);
-      results.forEach(({ name }) => expect(exportNames).toContain(name));
+      results.forEach(({ name }, index) => {
+        name.forEach((n) => expect(exportNames[index]).toContain(n));
+      });
     };
 
     it('ExportAllDeclaration', () => {
       testExportData(`export * from './src/AppState'`, [
-        'default',
-        'Platform',
-        'OnlyWeb',
-        'OnlyNative',
+        ['default', 'Platform', 'OnlyWeb', 'OnlyNative'],
       ]);
     });
   });

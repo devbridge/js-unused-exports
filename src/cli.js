@@ -21,8 +21,12 @@ export function checkUnused(ctx) {
 
   const sourceFiles = getSourcePaths(config.sourcePaths, config);
   const testFiles = getSourcePaths(config.testPaths, config);
-  const exportedNames = getExports(sourceFiles, ctx);
-  const importedNames = getImports(sourceFiles, ctx);
+  const filteredSourceFiles = sourceFiles.filter(
+    (sourceFile) => !testFiles.includes(sourceFile)
+  );
+
+  const exportedNames = getExports(filteredSourceFiles, ctx);
+  const importedNames = getImports(filteredSourceFiles, ctx);
   const unusedExports = extractUnusedExports(
     exportedNames,
     importedNames,

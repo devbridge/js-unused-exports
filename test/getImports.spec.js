@@ -160,14 +160,7 @@ something.lastName;
     });
 
     it('ExportAllDeclaration', () => {
-      testGetImportDetails(`export * from './src/exports-sample'`, [
-        'firstName',
-        'lastName',
-        'getFullName',
-        'getName',
-        'Family',
-        'default',
-      ]);
+      testGetImportDetails(`export * from './src/exports-sample'`, []);
     });
 
     it('Unknown', () => {
@@ -196,7 +189,7 @@ something.lastName;
 
       getImportDetails(node, sourcePath, ast, ctx).forEach(
         ({ specifiers }, index) => {
-          const expectations = listOfExpectations[index];
+          const expectations = listOfExpectations[index] || [];
           expect(specifiers).toHaveLength(expectations.length);
           specifiers.forEach((specifier) =>
             expect(expectations).toContain(specifier)
@@ -206,10 +199,7 @@ something.lastName;
     };
 
     it('ExportAllDeclaration', () => {
-      testGetImportDetails(`export * from './src/AppState'`, [
-        ['default', 'Platform', 'OnlyWeb'],
-        ['default', 'Platform', 'OnlyNative'],
-      ]);
+      testGetImportDetails(`export * from './src/AppState'`, []);
     });
   });
 

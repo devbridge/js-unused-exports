@@ -14,7 +14,6 @@ import {
   isExportSpecifier,
   isImportSpecifier,
 } from '@babel/types';
-import { getExportedIdentifiers } from './getExports';
 
 export default function getImports(sourcePaths, ctx) {
   return sourcePaths
@@ -156,20 +155,6 @@ export function getImportDetails(node, srcPath, ast, ctx) {
       .map((specifier) => specifier.local.name);
 
     return flattenDetails(specifiers);
-  }
-
-  // Case: export * from './sample-file';
-  if (isExportAllDeclaration(node)) {
-    const getSpecifiersNames = (sourcePath) => {
-      const source = fs.readFileSync(sourcePath, 'utf8');
-      return getExportedIdentifiers(source, sourcePath, ctx).map(
-        ({ name }) => name
-      );
-    };
-
-    return Array.isArray(from)
-      ? from.map((f) => ({ from: f, specifiers: getSpecifiersNames(f) }))
-      : { from, specifiers: getSpecifiersNames(from) };
   }
 
   return flattenDetails([]);
