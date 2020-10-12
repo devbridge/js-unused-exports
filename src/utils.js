@@ -1,6 +1,4 @@
-import lodash from 'lodash';
 import glob from 'glob';
-import path from 'path';
 
 /**
  *
@@ -10,28 +8,37 @@ import path from 'path';
 export function getSourcePaths(globPatterns, config) {
   const options = {
     cwd: config.projectRoot,
-    ignore: config.ignorePaths
+    ignore: config.ignorePaths,
+    absolute: true,
   };
 
-  return lodash.flatMap(globPatterns, globPattern =>
-    glob.sync(globPattern, options)
-  ).map(toAbsolutPath(config.projectRoot));
+  return globPatterns.flatMap((globPattern) => glob.sync(globPattern, options));
 }
 
-/**
- * Returns function which converts relative path to absolute.
- *
- * @param {string} projectRoot Project root directory path
- */
-function toAbsolutPath(projectRoot) {
-  return relativePath => path.join(projectRoot, relativePath);
+// Lifted from lodash
+function isObjectLike(value) {
+  return typeof value === 'object' && value !== null;
 }
 
-/**
- * Returns function which converts absolute path to relative.
- *
- * @param {string} projectRoot Project root directory path
- */
-export function toRelativePath(projectRoot) {
-  return sourcePath => path.relative(projectRoot, sourcePath);
+export function isPlainObject(value) {
+  if (!isObjectLike(value) || String(value) !== '[object Object]') {
+    return false;
+  }
+  if (Object.getPrototypeOf(value) === null) {
+    return true;
+  }
+  let proto = value;
+  while (Object.getPrototypeOf(proto) !== null) {
+    proto = Object.getPrototypeOf(proto);
+  }
+  return Object.getPrototypeOf(value) === proto;
+}
+
+const reRegExpChar = /[\\^$.*+?()[\]{}|]/g;
+const reHasRegExpChar = RegExp(reRegExpChar.source);
+
+export function escapeRegExp(string) {
+  return string && reHasRegExpChar.test(string)
+    ? string.replace(reRegExpChar, '\\$&')
+    : string || '';
 }

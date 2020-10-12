@@ -1,21 +1,21 @@
-import fixExports, { removeExportDeclarations } from '../fixExports';
+import fixExports, { removeExportDeclarations } from '../src/fixExports';
 import fs from 'fs';
 
 jest.mock('fs', () => ({
   readFileSync: jest.fn(),
-  writeFileSync: jest.fn()
+  writeFileSync: jest.fn(),
 }));
 
 describe('fixExports', () => {
   describe('fixExports()', () => {
     it('replaces file content with updated content', () => {
-      fs.readFileSync.mockImplementation(() => 'export const a = 1;')
+      fs.readFileSync.mockImplementation(() => 'export const a = 1;');
 
       const unusedExports = [
         {
           sourcePath: 'fake-path',
-          unusedExports: ['a']
-        }
+          unusedExports: ['a'],
+        },
       ];
 
       fixExports(unusedExports);

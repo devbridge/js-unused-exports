@@ -1,7 +1,7 @@
-import path from 'path';
 import fs from 'fs';
 import assert from 'assert';
-import lodash from 'lodash';
+import resolve from 'enhanced-resolve';
+import { isPlainObject } from './utils';
 
 export const defaultParserOptions = {
   sourceType: 'module',
@@ -13,53 +13,53 @@ export const defaultParserOptions = {
 
     // Required by frontend
     'decorators-legacy',
-    'exportDefaultFrom'
-  ]
+    'exportDefaultFrom',
+  ],
 };
 
 const CONFIG_DEFAULTS = {
   sourcePaths: ['src/**/*.js'],
   testPaths: ['src/**/*.spec.js'],
-  ignoreImportPatterns: ['(png|gif|jpg|jpeg|css|scss)$'],
+  ignoreImportPatterns: ['node_modules', '(png|gif|jpg|jpeg|css|scss)$'],
   aliases: {},
-  parserOptions: defaultParserOptions
+  parserOptions: defaultParserOptions,
 };
 
 export default function createContext(userConfig) {
   const config = {
     ...CONFIG_DEFAULTS,
     ...userConfig,
-    projectRoot: userConfig.projectRoot || process.cwd()
+    projectRoot: userConfig.projectRoot || process.cwd(),
+    resolve:
+      userConfig.resolve ||
+      resolve.create.sync({
+        alias: userConfig.aliases,
+        extensions: ['.js', '.jsx'],
+      }),
   };
 
   assertConfig(config);
 
-  const pkgJsonPath = path.join(config.projectRoot, 'package.json');
-  const { dependencies, devDependencies } = JSON.parse(
-    fs.readFileSync(pkgJsonPath, 'utf8')
-  );
-
   return {
     config,
-    dependencies: { ...dependencies, ...devDependencies },
-    unknownPackages: {},
-    failedResolutions: {}
+    unknownPackages: [],
+    failedResolutions: [],
   };
 }
 
 function assertConfig(config) {
   assert(
-    lodash.isString(config.projectRoot),
+    typeof config.projectRoot === 'string',
     'Conifg "projectRoot" value must be a string'
   );
 
   assert(
-    lodash.isArray(config.sourcePaths),
+    Array.isArray(config.sourcePaths),
     'Conifg "sourcePaths" must be an array'
   );
 
   assert(
-    lodash.isPlainObject(config.parserOptions),
+    isPlainObject(config.parserOptions),
     'Missing valid "parserOptions" value'
   );
 

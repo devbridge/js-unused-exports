@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import _ from 'lodash';
 import chalk from 'chalk';
 import JSON5 from 'json5';
+import './polyfill';
 import { getSourcePaths } from './utils';
 import extractUnusedExports from './extractUnusedExports';
 import fixExports from './fixExports';
@@ -10,40 +10,73 @@ import printReport from './generateReport';
 import createContext from './createContext';
 import getExports from './getExports';
 import getImports from './getImports';
+import { isPlainObject } from './utils';
 
 const warn = chalk.yellow;
 const info = chalk.green;
 
-export function execute(args) {
-  const userConfig = getConfig(args.config);
-
-  const ctx = createContext(userConfig);
+export function checkUnused(ctx) {
   const { config } = ctx;
-
-  printBox(`Current Configuration`);
-  console.log(JSON.stringify(ctx.config, null, 2));
-
   const timeStart = Date.now();
 
   const sourceFiles = getSourcePaths(config.sourcePaths, config);
   const testFiles = getSourcePaths(config.testPaths, config);
-  const exportedNames = getExports(sourceFiles, ctx);
-  const importedNames = getImports(sourceFiles, ctx);
-  const importedNamesTest = getImports(testFiles, ctx);
+  const filteredSourceFiles = sourceFiles.filter(
+    (sourceFile) => !testFiles.includes(sourceFile)
+  );
+
+  const exportedNames = getExports(filteredSourceFiles, ctx);
+  const importedNames = getImports(filteredSourceFiles, ctx);
   const unusedExports = extractUnusedExports(
     exportedNames,
     importedNames,
-    importedNamesTest
+    testFiles
   );
 
-  warnForUnknownPackages(ctx.unknownPackages);
-  warnForFailedResolutions(ctx.failedResolutions);
+  const timeEnd = Date.now();
+  const timeTook = timeEnd - timeStart;
+
+  const { unknownPackages, failedResolutions } = ctx;
+
+  return {
+    sourceFileCount: sourceFiles.length,
+    testFileCount: testFiles.length,
+    exportedNames,
+    importedNames,
+    unusedExports,
+    unknownPackages,
+    failedResolutions,
+    timeTook,
+  };
+}
+
+export default function execute(args) {
+  const userConfig = getConfig(args.config);
+  const ctx = createContext(userConfig);
+  const { config } = ctx;
+
+  if (args.verbose) {
+    printBox(`Current Configuration`);
+    console.log(JSON.stringify(ctx.config, null, 2));
+  }
+
+  const summary = checkUnused(ctx);
+  const {
+    unusedExports,
+    exportedNames,
+    importedNames,
+    unknownPackages,
+    failedResolutions,
+  } = summary;
+
+  warnForUnknownPackages(unknownPackages);
+  warnForFailedResolutions(failedResolutions, config.projectRoot);
 
   if (args.fix) {
     fixExports(unusedExports, config);
   } else {
     printBox(`Report`);
-    printReport(unusedExports);
+    printReport(unusedExports, config.projectRoot);
   }
 
   const { outDir } = args;
@@ -62,27 +95,19 @@ export function execute(args) {
     }
   }
 
-  const timeEnd = Date.now();
-  const timeTook = timeEnd - timeStart;
-
-  const summary = {
-    sourceFileCount: sourceFiles.length,
-    testFileCount: testFiles.length,
-    unusedExports,
-    timeTook
-  };
-
   printSummary(summary);
+
+  return summary;
 }
 
-function getConfig(conifgPath) {
-  if (!_.isString(conifgPath)) {
-    return _.isPlainObject(conifgPath) ? conifgPath : {};
+function getConfig(configPath) {
+  if (typeof configPath !== 'string') {
+    return isPlainObject(configPath) ? configPath : {};
   }
 
-  const absolutPath = path.resolve(conifgPath);
+  const absolutPath = path.resolve(configPath);
 
-  if (!fs.existsSync(conifgPath)) {
+  if (!fs.existsSync(configPath)) {
     printWarning('Unable to find config file: ' + absolutPath);
     return null;
   }
@@ -97,9 +122,9 @@ function print(message) {
 function printSummary(summary) {
   const { timeTook, sourceFileCount, testFileCount, unusedExports } = summary;
 
-  const unusedExportCount = _.sumBy(
-    unusedExports,
-    exp => exp.unusedExports.length
+  const unusedExportCount = unusedExports.reduce(
+    (acc, exp) => acc + exp.unusedExports.length,
+    0
   );
 
   const fileCount = unusedExports.length;
@@ -114,11 +139,13 @@ function printSummary(summary) {
 
 function printBox(value) {
   const width = 60;
-  const empty = '';
+  const padding = (width - value.length) / 2;
+  const startPadding = Math.floor(padding);
+  const endPaddig = Math.ceil(padding);
 
-  print(`┌${_.pad(empty, width, '─')}┐`);
-  print(`|${_.pad(value, width, ' ')}|`);
-  print(`└${_.pad(empty, width, '─')}┘`);
+  print(`┌${'─'.repeat(width)}┐`);
+  print(`|${' '.repeat(startPadding)}${value}${' '.repeat(endPaddig)}|`);
+  print(`└${'─'.repeat(width)}┘`);
 }
 
 function printWarning(message) {
@@ -126,7 +153,7 @@ function printWarning(message) {
 }
 
 function warnForUnknownPackages(unknownPackages) {
-  const unresolvePackages = _.keys(unknownPackages);
+  const unresolvePackages = unknownPackages;
 
   if (unresolvePackages.length === 0) {
     return;
@@ -138,28 +165,27 @@ function warnForUnknownPackages(unknownPackages) {
 
   printWarning(message);
 
-  unresolvePackages.forEach(pkg => {
-    printWarning(`  ${pkg}`);
+  unresolvePackages.forEach((pkg) => {
+    printWarning(`  ${pkg} `);
   });
 }
 
-function warnForFailedResolutions(failedResolutions) {
-  const importPath = _.sortBy(_.keys(failedResolutions));
-
-  if (importPath.length === 0) {
+function warnForFailedResolutions(failedResolutions, projectRoot) {
+  if (!failedResolutions.length) {
     return;
   }
 
   const message = [
     'Unable to resolve following import paths. Please',
     'specify "alias" if needed or add pattern to',
-    '"ignoreImportPatterns" in provided config file.'
+    '"ignoreImportPatterns" in provided config file.',
   ].join(' ');
 
   printWarning(message);
 
-  importPath.forEach(importPath => {
-    printWarning(`  ${importPath}`);
+  [...failedResolutions].sort().forEach((importPath) => {
+    const relativePath = path.relative(projectRoot, importPath);
+    printWarning(`  ${relativePath} `);
   });
 }
 

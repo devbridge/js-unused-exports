@@ -1,34 +1,39 @@
-import lodash from 'lodash';
 import fs from 'fs';
+import path from 'path';
 import { parse } from '@babel/parser';
-import { toRelativePath } from './utils';
+import {
+  isExportDefaultDeclaration,
+  isExportNamedDeclaration,
+  isExportAllDeclaration,
+  isVariableDeclaration,
+  isFunctionDeclaration,
+  isClassDeclaration,
+  isTypeAlias,
+  isOpaqueType,
+  isInterfaceDeclaration,
+} from '@babel/types';
 
-export default function getExports(sourcePaths, ctx) {
-  return sourcePaths.reduce((result, sourcePath) => {
-    const source = fs.readFileSync(sourcePath, 'utf8');
-    const exportData = getExportData(source, sourcePath, ctx);
-
-    const ignoreExportPatterns = ctx.config.ignoreExportPatterns;
-    if (
-      !ignoreExportPatterns ||
-      ignoreExportPatterns.every((pattern) => !RegExp(pattern).test(sourcePath))
-    ) {
-      result.push(exportData);
-    }
-
-    return result;
-  }, []);
+function createIsNotIgnoredFile(ignoreExportPatterns = []) {
+  const ignores = ignoreExportPatterns.map((pattern) => new RegExp(pattern));
+  return (sourcePath) => !ignores.some((regExp) => regExp.test(sourcePath));
 }
 
-function getExportData(source, sourcePath, ctx) {
-  const { config } = ctx;
-  const exports = getExportedIdentifiers(source, config.parserOptions);
-  const toRelative = toRelativePath(config.projectRoot);
+export default function getExports(sourcePaths, ctx) {
+  const { ignoreExportPatterns = [] } = ctx.config;
+  const isNotIgnored = createIsNotIgnoredFile(ignoreExportPatterns);
+
+  return sourcePaths.filter(isNotIgnored).flatMap((sourcePath) => {
+    const source = fs.readFileSync(sourcePath, 'utf8');
+    return getExportData(source, sourcePath, ctx);
+  });
+}
+
+export function getExportData(source, sourcePath, ctx) {
+  const exports = getExportedIdentifiers(source, sourcePath, ctx);
 
   return {
     sourcePath,
-    relativePath: toRelative(sourcePath),
-    exports
+    exports,
   };
 }
 
@@ -39,8 +44,9 @@ function getExportData(source, sourcePath, ctx) {
  */
 function isExportDeclaration(node) {
   return (
-    node.type === 'ExportNamedDeclaration' ||
-    node.type === 'ExportDefaultDeclaration'
+    isExportNamedDeclaration(node) ||
+    isExportDefaultDeclaration(node) ||
+    isExportAllDeclaration(node)
   );
 }
 
@@ -51,11 +57,13 @@ function isExportDeclaration(node) {
  * @param {string} source Source code as string
  * @param {Object} parserOptions Parser options
  */
-export function getExportedIdentifiers(source, parserOptions) {
-  const ast = parse(source, parserOptions);
-  const declarations = ast.program.body.filter(isExportDeclaration);
+export function getExportedIdentifiers(source, sourcePath, ctx) {
+  const { parserOptions } = ctx.config;
 
-  return lodash.flatMap(declarations, getExportName);
+  const ast = parse(source, parserOptions);
+  return ast.program.body
+    .filter(isExportDeclaration)
+    .flatMap((node) => getExportName(node, sourcePath, ctx));
 }
 
 /**
@@ -64,39 +72,70 @@ export function getExportedIdentifiers(source, parserOptions) {
  *
  * @param {AstNode} node
  */
-function getExportName(node) {
-  if (node.type === 'ExportDefaultDeclaration') {
+export function getExportName(node, sourcePath, ctx) {
+  const { loc, declaration } = node;
+  if (isExportDefaultDeclaration(node)) {
     return {
       name: 'default',
-      loc: node.loc
+      loc,
     };
   }
 
-  if (!node.declaration) {
-    return node.specifiers.map(specifier => ({
-      name: specifier.exported.name,
-      loc: specifier.exported.loc
+  if (isExportAllDeclaration(node)) {
+    const { resolve } = ctx.config;
+    const { value: sourceValue } = node.source;
+
+    let resolvedSourcePaths;
+    try {
+      const sourcePaths = resolve(path.dirname(sourcePath), sourceValue);
+      resolvedSourcePaths = Array.isArray(sourcePaths)
+        ? sourcePaths
+        : [sourcePaths];
+    } catch (error) {
+      return [];
+    }
+
+    const names = getExportNamesFromImport(resolvedSourcePaths, ctx);
+    return { loc, name: names };
+  }
+
+  if (isVariableDeclaration(declaration)) {
+    return declaration.declarations.map((declaration) => ({
+      name: declaration.id.name,
+      loc,
     }));
   }
 
-  const { type } = node.declaration;
-
-  switch (type) {
-    case 'VariableDeclaration':
-      return node.declaration.declarations.map(declaration => ({
-        name: declaration.id.name,
-        loc: node.loc
-      }));
-    case 'FunctionDeclaration':
-    case 'ClassDeclaration':
-    case 'TypeAlias':
-    case 'OpaqueType':
-    case 'InterfaceDeclaration':
-      return {
-        name: node.declaration.id.name,
-        loc: node.loc
-      };
-    default:
-      throw new Error(`Unknow declaration type: ${type}`);
+  if (
+    isFunctionDeclaration(declaration) ||
+    isClassDeclaration(declaration) ||
+    isTypeAlias(declaration) ||
+    isOpaqueType(declaration) ||
+    isInterfaceDeclaration(declaration)
+  ) {
+    return {
+      name: declaration.id.name,
+      loc,
+    };
   }
+
+  if (!declaration && node.specifiers) {
+    return node.specifiers.map((specifier) => ({
+      name: specifier.exported.name,
+      loc: specifier.exported.loc,
+    }));
+  }
+
+  const { type } = declaration || node;
+  throw new Error(`Unknow declaration type: ${type}`);
+}
+
+function getExportNamesFromImport(sourcePaths, ctx) {
+  return sourcePaths
+    .flatMap((sourcePath) => {
+      const source = fs.readFileSync(sourcePath, 'utf8');
+      return getExportedIdentifiers(source, sourcePath, ctx);
+    })
+    .flatMap(({ name }) => name)
+    .filter((name, index, arr) => !arr.includes(name, index + 1));
 }
