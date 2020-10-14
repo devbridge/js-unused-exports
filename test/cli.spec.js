@@ -7,7 +7,7 @@ function testUnusedExports(unusedExports, expectations) {
   Object.entries(expectations).forEach(
     ([relativePath, expectedUnusedNames]) => {
       const unusedExport = unusedExports.find(({ sourcePath }) =>
-        sourcePath.endsWith(relativePath)
+        sourcePath.endsWith(path.normalize(relativePath))
       );
 
       if (!unusedExport) {

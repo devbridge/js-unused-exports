@@ -1,3 +1,4 @@
+import path from 'path';
 import glob from 'glob';
 
 /**
@@ -12,7 +13,9 @@ export function getSourcePaths(globPatterns, config) {
     absolute: true,
   };
 
-  return globPatterns.flatMap((globPattern) => glob.sync(globPattern, options));
+  return globPatterns
+    .flatMap((globPattern) => glob.sync(globPattern, options))
+    .map((sourcePath) => path.normalize(sourcePath));
 }
 
 // Lifted from lodash
