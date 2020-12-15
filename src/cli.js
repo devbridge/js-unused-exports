@@ -86,7 +86,7 @@ export default function execute(args) {
 
     const dirPath = path.resolve(outDir);
 
-    if (path.existsSync(dirPath)) {
+    if (fs.existsSync(dirPath)) {
       writeToFile(exportedNames, dirPath, 'exports.json');
       writeToFile(importedNames, dirPath, 'imports.json');
       writeToFile(unusedExports, dirPath, 'unused.json');
