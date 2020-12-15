@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.2.0 (2020-12-15)
+
+* Support for monorepo
+* Change to enhanced-resolver for handling import paths
+
 ## v1.1.1 (2020-07-20)
 
 * Update dependencies
