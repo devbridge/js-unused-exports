@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.2.1 (2021-05-28)
+
+* Update dependencies
+
 ## v1.2.0 (2020-12-15)
 
 * Support for monorepo
