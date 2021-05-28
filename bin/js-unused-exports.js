@@ -2,7 +2,7 @@
 
 const program = require('commander');
 const pkg = require('../package.json');
-const execute = require('../lib/cli');
+const execute = require('../lib/cli').default;
 
 program
   .version(pkg.version, '-v, --version')
