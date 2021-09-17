@@ -24,25 +24,25 @@
     "lib/"
   ],
   "dependencies": {
-    "@babel/code-frame": "^7.12.13",
-    "@babel/parser": "^7.14.3",
-    "@babel/traverse": "^7.14.2",
-    "@babel/types": "^7.14.2",
-    "chalk": "^4.1.1",
-    "commander": "^7.2.0",
+    "@babel/code-frame": "^7.14.5",
+    "@babel/parser": "^7.15.6",
+    "@babel/traverse": "^7.15.4",
+    "@babel/types": "^7.15.6",
+    "chalk": "^4.1.2",
+    "commander": "^8.2.0",
     "enhanced-resolve": "^5.8.2",
     "glob": "^7.1.7",
     "json5": "^2.2.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.14.3",
-    "@babel/preset-env": "^7.14.2",
+    "@babel/cli": "^7.15.4",
+    "@babel/preset-env": "^7.15.6",
     "babel-eslint": "^10.1.0",
-    "eslint": "^7.27.0",
+    "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-prettier": "^3.4.0",
-    "jest": "^27.0.1",
-    "prettier": "^2.3.0"
+    "eslint-plugin-prettier": "^4.0.0",
+    "jest": "^27.2.0",
+    "prettier": "^2.4.1"
   },
   "keywords": [
     "linting",

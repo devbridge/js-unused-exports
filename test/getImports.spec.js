@@ -314,7 +314,9 @@ something.lastName;
       const commonDir = path.join(packagesDir, 'common');
 
       beforeEach(() => {
-        fs.mkdirSync(moduleDir);
+        if (!fs.existsSync(moduleDir)) {
+          fs.mkdirSync(moduleDir);
+        }
         fs.mkdirSync(packagesDir);
         fs.symlinkSync('../../packages/common', commonDir);
       });
